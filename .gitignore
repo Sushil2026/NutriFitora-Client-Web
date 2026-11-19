@@ -1,17 +1,6 @@
-# Dependencies
-node_modules/
-
-# Expo
-.expo/
-
-# Build output
-dist/
-web-build/
-
-# Environment variables
+**/bin/
+**/obj/
 .env
 .env.*
 !.env.example
-
-# Logs
-npm-debug.log*
+!.env.Example
