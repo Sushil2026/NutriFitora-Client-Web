@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "NutriWell",
+    "slug": "nutriwell-customer",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "web": {
+      "bundler": "metro",
+      "name": "NutriWell",
+      "shortName": "NutriWell",
+      "themeColor": "#246B4A",
+      "backgroundColor": "#F3F7F3"
+    }
+  }
+}
