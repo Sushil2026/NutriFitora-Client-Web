@@ -218,21 +218,31 @@ export default function App() {
       >
         <View style={themed('shell', styles.shell)}>
 
-          <TouchableOpacity onPress={toggleTheme} accessibilityRole="button" accessibilityLabel={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} style={{ alignSelf: 'flex-end', backgroundColor: darkMode ? '#2B4535' : '#E5F1E8', borderRadius: 14, paddingHorizontal: 15, paddingVertical: 10, marginBottom: 12 }}>
-            <Text style={{ color: darkMode ? '#FFE7A1' : '#246B4A', fontWeight: '700' }}>{darkMode ? '☀  Light mode' : '☾  Dark mode'}</Text>
-          </TouchableOpacity>
-          {/* Logo */}
-          <View style={themed('logoContainer', styles.logoContainer)}>
+          {/* Matching assessment header: logo left, theme toggle right */}
+          <View style={themed('loginHeader', styles.loginHeader)}>
             <Image
               source={require('./assets/NutriFitora_logo.png')}
-              style={themed('brandLogo', styles.brandLogo)}
+              style={styles.brandLogo}
               resizeMode="contain"
+              accessibilityLabel="Nutri Fitora logo"
             />
+            <TouchableOpacity
+              onPress={toggleTheme}
+              accessibilityRole="button"
+              accessibilityLabel={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              style={[styles.loginThemeButton, darkMode ? styles.loginThemeButtonDark : styles.loginThemeButtonLight]}
+            >
+              <Text style={[styles.loginThemeIcon, { color: '#246B4A' }]}>{darkMode ? '☀' : '☾'}</Text>
+              <Text style={styles.loginThemeText}>{darkMode ? 'Light' : 'Dark'}</Text>
+            </TouchableOpacity>
           </View>
 
-          <Text style={themed('tagline', styles.tagline)}>
-            Small steps. Healthier you.
-          </Text>
+          <View style={styles.taglineRow}>
+            <Text style={themed('tagline', styles.tagline)}>
+              <Text style={themed('taglineAccent', styles.taglineAccent)}>Small steps.</Text>
+              {'\n'}Healthier you.
+            </Text>
+          </View>
 
           <View style={themed('card', styles.card)}>
 
@@ -458,6 +468,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
+  loginHeader: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+    paddingHorizontal: 2,
+  },
+  loginThemeButton: {
+    width: 66,
+    height: 66,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loginThemeButtonLight: { backgroundColor: '#E5F1E8' },
+  loginThemeButtonDark: { backgroundColor: '#F4F8F4' },
+  loginThemeIcon: { fontSize: 23, lineHeight: 27, fontWeight: '700' },
+  loginThemeText: { fontSize: 11, fontWeight: '700', color: '#246B4A' },
   logoContainer: {
     width: '100%',
     alignItems: 'center',
@@ -472,11 +501,20 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
 
+  taglineRow: { width: '100%', alignItems: 'flex-start', marginBottom: 22, paddingLeft: 4 },
   tagline: {
-    color: '#738078',
-    marginTop: 4,
-    marginBottom: 24,
-    textAlign: 'center',
+    color: '#1C4933',
+    textAlign: 'left',
+    fontSize: 27,
+    lineHeight: 34,
+    fontWeight: '800',
+    letterSpacing: -0.6,
+  },
+  taglineAccent: {
+    color: '#399466',
+    fontWeight: '600',
+    fontStyle: 'italic',
+    letterSpacing: -0.35,
   },
 
   card: {
@@ -625,7 +663,7 @@ const appDarkOverrides: Record<string, object> = {
   safe: { backgroundColor: '#101A16' }, page: { backgroundColor: '#101A16' }, scroll: { backgroundColor: '#101A16' },
   secondaryPageLogo: { backgroundColor: '#101A16' },
   card: { backgroundColor: '#1B2A23', borderColor: '#34483B' },
-  tagline: { color: '#B7C9BC' }, tabs: { backgroundColor: '#2A3A30' },
+  tagline: { color: '#F0F7F1' }, taglineAccent: { color: '#91D9AA' }, tabs: { backgroundColor: '#2A3A30' },
   selected: { backgroundColor: '#365640' }, tabText: { color: '#C0D2C4' },
   selectedText: { color: '#B9F2CB' }, heading: { color: '#F1F7F2' },
   subtitle: { color: '#B5C9BA' }, label: { color: '#DDECE0' },
