@@ -17,9 +17,20 @@ import { StatusBar } from 'expo-status-bar';
 
 import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
 
-const API_URL =
-  process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:5000';
+// Expo reads EXPO_PUBLIC_* values from frontend/.env at startup.
+// Use the deployed API by default, including when testing locally in a browser.
+const API_URL = (
+  process.env.EXPO_PUBLIC_API_URL ||
+  'https://nutrifitora-client-api.onrender.com'
+).trim().replace(/\/+$/, '');
 
+type ApiResponse = {
+  message?: string;
+  title?: string;
+  errors?: Record<string, string[]>;
+  user?: { fullName?: string };
+  token?: string;
+};
 type Mode = 'login' | 'register';
 
 export default function App() {
@@ -89,11 +100,24 @@ export default function App() {
         }
       );
 
-      const data = await response.json().catch(() => ({}));
+      // Some server failures return plain text or an empty response.
+      const responseText = await response.text();
+      let data: ApiResponse = {};
+      if (responseText) {
+        try {
+          data = JSON.parse(responseText) as ApiResponse;
+        } catch {
+          // Avoid displaying server HTML or sensitive diagnostic output.
+        }
+      }
 
       if (!response.ok) {
+        const validationMessage = data.errors
+          ? Object.values(data.errors).flat().join(' ')
+          : undefined;
+        const detail = validationMessage || data.message || data.title;
         throw new Error(
-          data.message ?? `Request failed (${response.status})`
+          detail || `Request failed (HTTP ${response.status}).`
         );
       }
 
@@ -105,7 +129,7 @@ export default function App() {
         setPassword('');
       } else {
         notify(
-          `Welcome ${data.user?.fullName ?? ''}. Login successful.`
+          `Welcome${data.user?.fullName ? ` ${data.user.fullName}` : ''}! Login successful.`
         );
         setPassword('');
 
@@ -113,10 +137,15 @@ export default function App() {
         // can be connected here later.
       }
     } catch (error) {
+      const isNetworkError =
+        error instanceof TypeError ||
+        (error instanceof Error && error.message === 'Network request failed');
       notify(
-        error instanceof Error
-          ? error.message
-          : 'Unable to connect to the server.'
+        isNetworkError
+          ? 'Cannot reach the API. Check the API URL, network connection, and browser CORS console.'
+          : error instanceof Error
+            ? error.message
+            : 'Unable to connect to the server.'
       );
     } finally {
       setBusy(false);
