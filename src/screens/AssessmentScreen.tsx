@@ -13,6 +13,32 @@ const goals = ['Improve general health', 'Manage weight', 'Build strength', 'Imp
 const activities = ['Mostly sitting', 'Lightly active', 'Moderately active', 'Very active'];
 const diets = ['No preference', 'Vegetarian', 'Vegan', 'Eggetarian', 'Non-vegetarian', 'Other'];
 const stages = ['About you', 'Your goals', 'Daily habits', 'Review'];
+type NumericKey = 'age' | 'heightCm' | 'weightKg' | 'meals' | 'water' | 'sleep';
+const numericRules: Record<NumericKey, { integer: boolean; min: number; max: number; unit: string }> = {
+  age: { integer: true, min: 18, max: 120, unit: 'years' },
+  heightCm: { integer: false, min: 80, max: 250, unit: 'cm' },
+  weightKg: { integer: false, min: 20, max: 400, unit: 'kg' },
+  meals: { integer: true, min: 1, max: 12, unit: 'meals' },
+  water: { integer: false, min: 0.1, max: 15, unit: 'litres' },
+  sleep: { integer: false, min: 0.5, max: 24, unit: 'hours' },
+};
+function sanitizeNumeric(value: string, integer: boolean): string {
+  // Accept digits only; decimal fields allow one decimal separator.
+  const cleaned = value.replace(/,/g, '.').replace(/[^0-9.]/g, '');
+  if (integer) return cleaned.replace(/\./g, '');
+  const [whole, ...fractions] = cleaned.split('.');
+  return fractions.length ? `${whole}.${fractions.join('')}` : whole;
+}
+function validateNumeric(key: NumericKey, value: string): string | null {
+  if (!value) return null;
+  const rule = numericRules[key];
+  const number = Number(value);
+  if (!/^[0-9]+(?:\.[0-9]+)?$/.test(value) || !Number.isFinite(number) ||
+      (rule.integer && !Number.isInteger(number)) || number < rule.min || number > rule.max) {
+    return `Enter a valid ${key === 'heightCm' ? 'height' : key === 'weightKg' ? 'weight' : key} (${rule.min}–${rule.max} ${rule.unit}).`;
+  }
+  return null;
+}
 
 export default function AssessmentScreen({ customerName, onLogout }: Props) {
   const [step, setStep] = useState(0);
@@ -20,10 +46,10 @@ export default function AssessmentScreen({ customerName, onLogout }: Props) {
   const [error, setError] = useState('');
   const [complete, setComplete] = useState(false);
   const update = (key: keyof Answers, value: string) => { setAnswers(prev => ({ ...prev, [key]: value })); setError(''); };
-  const numeric = (key: keyof Answers, label: string, placeholder: string) => (
+  const numeric = (key: NumericKey, label: string, placeholder: string, optional = false) => (
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
-      <TextInput style={styles.input} keyboardType="numeric" placeholder={placeholder} value={answers[key]} onChangeText={value => update(key, value)} />
+      <TextInput style={styles.input} keyboardType={numericRules[key].integer ? 'number-pad' : 'decimal-pad'} placeholder={placeholder} value={answers[key]} onChangeText={value => update(key, sanitizeNumeric(value, numericRules[key].integer))} maxLength={8} accessibilityLabel={label} />
     </View>
   );
   const textField = (key: keyof Answers, label: string, placeholder: string, multiline = false) => (
@@ -44,9 +70,16 @@ export default function AssessmentScreen({ customerName, onLogout }: Props) {
   );
   const validate = () => {
     if (step === 0) {
-      const age = Number(answers.age), height = Number(answers.heightCm), weight = Number(answers.weightKg);
-      if (!answers.age || !answers.heightCm || !answers.weightKg || !Number.isInteger(age) || age < 18 || age > 120 || !Number.isFinite(height) || height < 80 || height > 250 || !Number.isFinite(weight) || weight < 20 || weight > 400) {
-        setError('Enter a valid adult age (18–120), height (80–250 cm), and weight (20–400 kg).'); return false;
+      for (const key of ['age', 'heightCm', 'weightKg'] as NumericKey[]) {
+        if (!answers[key]) { setError('Age, height and weight are required.'); return false; }
+        const validationError = validateNumeric(key, answers[key]);
+        if (validationError) { setError(validationError); return false; }
+      }
+    }
+    if (step === 2) {
+      for (const key of ['meals', 'water', 'sleep'] as NumericKey[]) {
+        const validationError = validateNumeric(key, answers[key]);
+        if (validationError) { setError(validationError); return false; }
       }
     }
     if (step === 1 && (!answers.goal || !answers.activity || !answers.diet)) {
@@ -55,11 +88,28 @@ export default function AssessmentScreen({ customerName, onLogout }: Props) {
     return true;
   };
   const next = () => { if (validate()) { setError(''); setStep(s => Math.min(s + 1, 3)); } };
+  // BMI is calculated only from valid height and weight inputs.
+  const heightError = validateNumeric('heightCm', answers.heightCm);
+  const weightError = validateNumeric('weightKg', answers.weightKg);
+  const heightMeters = Number(answers.heightCm) / 100;
+  const bmi = answers.heightCm && answers.weightKg && !heightError && !weightError && heightMeters > 0
+    ? Number(answers.weightKg) / (heightMeters * heightMeters)
+    : null;
+  const bmiCategory = bmi === null ? '' : bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Healthy weight' : bmi < 30 ? 'Overweight' : 'Obesity';
+  const bmiColor = bmi === null ? '#246B4A' : bmi < 18.5 ? '#8A5A16' : bmi < 25 ? '#246B4A' : bmi < 30 ? '#A65C12' : '#A42C2C';
+  const bmiPanel = bmi !== null ? (
+    <View style={styles.bmiPanel} accessibilityRole="summary">
+      <Text style={styles.bmiHeading}>YOUR BODY MASS INDEX (BMI)</Text>
+      <Text style={[styles.bmiNumber, { color: bmiColor }]}>{bmi.toFixed(1)}</Text>
+      <Text style={[styles.bmiCategory, { color: bmiColor }]}>{bmiCategory}</Text>
+      <Text style={styles.bmiNote}>Calculated from your height and weight. BMI is a screening measure, not a diagnosis, and may not reflect individual body composition.</Text>
+    </View>
+  ) : null;
   const rows: Array<[string, string]> = [
-    ['Age', `${answers.age} years`], ['Height', `${answers.heightCm} cm`], ['Weight', `${answers.weightKg} kg`],
+    ['Age', `${answers.age} years`], ['Height', `${answers.heightCm} cm`], ['Weight', `${answers.weightKg} kg`], ['BMI', bmi !== null ? `${bmi.toFixed(1)} (${bmiCategory})` : 'Not available'],
     ['Goal', answers.goal], ['Activity', answers.activity], ['Diet', answers.diet],
-    ['Meals per day', answers.meals || 'Not provided'], ['Water per day', answers.water || 'Not provided'],
-    ['Sleep', answers.sleep || 'Not provided'], ['Allergies / restrictions', answers.allergies || 'Not provided'],
+    ['Meals per day', answers.meals || 'Not provided'], ['Water per day', answers.water ? `${answers.water} litres` : 'Not provided'],
+    ['Sleep', answers.sleep ? `${answers.sleep} hours` : 'Not provided'], ['Allergies / restrictions', answers.allergies || 'Not provided'],
     ['Additional notes', answers.notes || 'Not provided'],
   ];
   return (
@@ -70,6 +120,7 @@ export default function AssessmentScreen({ customerName, onLogout }: Props) {
         {complete ? <>
           <Text style={styles.eyebrow}>ASSESSMENT COMPLETE</Text>
           <Text style={styles.title}>Thank you for sharing!</Text>
+          {bmiPanel}
           <Text style={styles.description}>Your assessment is complete for this session. Your answers have not yet been saved to the server. A nutritionist can use this information once assessment storage is connected.</Text>
           <TouchableOpacity style={styles.primary} onPress={() => { setComplete(false); setStep(3); }}><Text style={styles.primaryText}>Review answers</Text></TouchableOpacity>
         </> : <>
@@ -82,6 +133,7 @@ export default function AssessmentScreen({ customerName, onLogout }: Props) {
             {numeric('age', 'Age (18+)', 'e.g. 28')}
             {numeric('heightCm', 'Height (cm)', 'e.g. 165')}
             {numeric('weightKg', 'Weight (kg)', 'e.g. 65')}
+            {bmiPanel}
             <Text style={styles.hint}>These details are for assessment context, not a medical diagnosis.</Text>
           </>}
           {step === 1 && <>
@@ -90,14 +142,15 @@ export default function AssessmentScreen({ customerName, onLogout }: Props) {
             {choice('diet', 'Dietary preference', diets)}
           </>}
           {step === 2 && <>
-            {textField('meals', 'Meals per day (optional)', 'e.g. 3')}
-            {textField('water', 'Daily water intake (optional)', 'e.g. 2 litres')}
-            {textField('sleep', 'Typical sleep (optional)', 'e.g. 7 hours')}
+            {numeric('meals', 'Meals per day (optional)', 'e.g. 3', true)}
+            {numeric('water', 'Daily water intake in litres (optional)', 'e.g. 2.5', true)}
+            {numeric('sleep', 'Typical sleep in hours (optional)', 'e.g. 7.5', true)}
             {textField('allergies', 'Food allergies or restrictions (optional)', 'e.g. peanuts, lactose', true)}
             {textField('notes', 'Anything else for your nutritionist? (optional)', 'Share your routine or preferences', true)}
           </>}
           {step === 3 && <>
             <Text style={styles.section}>Review your answers</Text>
+            {bmiPanel}
             {rows.map(([label, value]) => <View key={label} style={styles.reviewRow}><Text style={styles.reviewLabel}>{label}</Text><Text style={styles.reviewValue}>{value}</Text></View>)}
             <Text style={styles.hint}>Completing this form does not submit information to the API yet.</Text>
           </>}
@@ -132,5 +185,10 @@ const styles = StyleSheet.create({
   secondary: { minHeight: 49, borderRadius: 11, borderWidth: 1, borderColor: '#CADACF', paddingHorizontal: 23, justifyContent: 'center' }, secondaryText: { color: '#246B4A', fontWeight: '700' },
   reviewRow: { borderBottomWidth: 1, borderBottomColor: '#EFF3EF', paddingVertical: 11, flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
   reviewLabel: { color: '#697B70', flex: 1 }, reviewValue: { color: '#1C3327', fontWeight: '600', flex: 1, textAlign: 'right' },
+  bmiPanel: { borderWidth: 2, borderColor: '#B6D8C1', borderRadius: 16, backgroundColor: '#EDF8F0', padding: 18, marginBottom: 20, alignItems: 'center' },
+  bmiHeading: { color: '#365E45', fontSize: 12, fontWeight: '800', letterSpacing: 1 },
+  bmiNumber: { fontSize: 44, fontWeight: '900', marginTop: 6 },
+  bmiCategory: { fontSize: 16, fontWeight: '800', marginBottom: 8 },
+  bmiNote: { color: '#65796B', fontSize: 12, textAlign: 'center', lineHeight: 18 },
   footer: { color: '#9AA69D', fontSize: 12, marginTop: 20, textAlign: 'center' },
 });
