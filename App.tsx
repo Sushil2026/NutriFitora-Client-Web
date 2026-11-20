@@ -41,6 +41,9 @@ export default function App() {
     }
   }, []);
 
+  const [darkMode, setDarkMode] = useState(false);
+  const toggleTheme = () => setDarkMode(current => !current);
+  const themed = (key: string, style: any) => darkMode ? [style, appDarkOverrides[key]] : style;
   const [mode, setMode] = useState<Mode>('login');
   const [loggedIn, setLoggedIn] = useState(false);
   const [customerName, setCustomerName] = useState('');
@@ -167,9 +170,9 @@ export default function App() {
 
   if (loggedIn) {
     return (
-      <SafeAreaView style={styles.safe}>
-        <StatusBar style="dark" />
-        <AssessmentScreen customerName={customerName} onLogout={() => {
+      <SafeAreaView style={themed('safe', styles.safe)}>
+        <StatusBar style={darkMode ? "light" : "dark"} />
+        <AssessmentScreen customerName={customerName} darkMode={darkMode} onToggleTheme={toggleTheme} onLogout={() => {
           setLoggedIn(false);
           setCustomerName('');
           setPassword('');
@@ -183,48 +186,62 @@ export default function App() {
   // Privacy Policy screen
   if (showPrivacyPolicy) {
     return (
-      <SafeAreaView style={styles.safe}>
-        <StatusBar style="dark" />
-        <PrivacyPolicyScreen
-          onBack={() => setShowPrivacyPolicy(false)}
-        />
+      <SafeAreaView style={themed('safe', styles.safe)}>
+        <StatusBar style={darkMode ? "light" : "dark"} />
+        <TouchableOpacity onPress={toggleTheme} accessibilityLabel="Toggle light and dark mode" style={{ alignSelf: 'flex-end', padding: 12 }}><Text style={{ color: darkMode ? '#FFFFFF' : '#246B4A' }}>{darkMode ? '☀ Light' : '☾ Dark'}</Text></TouchableOpacity>
+        <View style={themed('secondaryPageLogo', styles.secondaryPageLogo)}>
+          <Image
+            source={require('./assets/NutriFitora_logo.png')}
+            style={themed('secondaryBrandLogo', styles.secondaryBrandLogo)}
+            resizeMode="contain"
+            accessibilityLabel="Nutri Fitora logo"
+          />
+        </View>
+        <View style={themed('privacyContent', styles.privacyContent)}>
+          <PrivacyPolicyScreen
+            onBack={() => setShowPrivacyPolicy(false)}
+          />
+        </View>
       </SafeAreaView>
     );
   }
 
   // Login and registration screen
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar style="dark" />
+    <SafeAreaView style={themed('safe', styles.safe)}>
+      <StatusBar style={darkMode ? "light" : "dark"} />
 
       <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.page}
+        style={themed('scroll', styles.scroll)}
+        contentContainerStyle={themed('page', styles.page)}
         keyboardShouldPersistTaps="always"
       >
-        <View style={styles.shell}>
+        <View style={themed('shell', styles.shell)}>
 
+          <TouchableOpacity onPress={toggleTheme} accessibilityRole="button" accessibilityLabel={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} style={{ alignSelf: 'flex-end', backgroundColor: darkMode ? '#2B4535' : '#E5F1E8', borderRadius: 14, paddingHorizontal: 15, paddingVertical: 10, marginBottom: 12 }}>
+            <Text style={{ color: darkMode ? '#FFE7A1' : '#246B4A', fontWeight: '700' }}>{darkMode ? '☀  Light mode' : '☾  Dark mode'}</Text>
+          </TouchableOpacity>
           {/* Logo */}
-          <View style={styles.logoContainer}>
+          <View style={themed('logoContainer', styles.logoContainer)}>
             <Image
               source={require('./assets/NutriFitora_logo.png')}
-              style={styles.brandLogo}
-              resizeMode="cover"
+              style={themed('brandLogo', styles.brandLogo)}
+              resizeMode="contain"
             />
           </View>
 
-          <Text style={styles.tagline}>
+          <Text style={themed('tagline', styles.tagline)}>
             Small steps. Healthier you.
           </Text>
 
-          <View style={styles.card}>
+          <View style={themed('card', styles.card)}>
 
             {/* Login / Register tabs */}
-            <View style={styles.tabs}>
+            <View style={themed('tabs', styles.tabs)}>
               <TouchableOpacity
                 style={[
-                  styles.tab,
-                  mode === 'login' && styles.selected,
+                  themed('tab', styles.tab),
+                  mode === 'login' && themed('selected', styles.selected),
                 ]}
                 onPress={() => {
                   setMode('login');
@@ -233,8 +250,8 @@ export default function App() {
               >
                 <Text
                   style={[
-                    styles.tabText,
-                    mode === 'login' && styles.selectedText,
+                    themed('tabText', styles.tabText),
+                    mode === 'login' && themed('selectedText', styles.selectedText),
                   ]}
                 >
                   Sign in
@@ -243,8 +260,8 @@ export default function App() {
 
               <TouchableOpacity
                 style={[
-                  styles.tab,
-                  mode === 'register' && styles.selected,
+                  themed('tab', styles.tab),
+                  mode === 'register' && themed('selected', styles.selected),
                 ]}
                 onPress={() => {
                   setMode('register');
@@ -253,8 +270,8 @@ export default function App() {
               >
                 <Text
                   style={[
-                    styles.tabText,
-                    mode === 'register' && styles.selectedText,
+                    themed('tabText', styles.tabText),
+                    mode === 'register' && themed('selectedText', styles.selectedText),
                   ]}
                 >
                   Create account
@@ -262,13 +279,13 @@ export default function App() {
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.heading}>
+            <Text style={themed('heading', styles.heading)}>
               {mode === 'login'
                 ? 'Welcome back'
                 : 'Start your wellness journey'}
             </Text>
 
-            <Text style={styles.subtitle}>
+            <Text style={themed('subtitle', styles.subtitle)}>
               {mode === 'login'
                 ? 'Sign in to continue to your nutrition plan.'
                 : 'Create your customer account.'}
@@ -277,57 +294,57 @@ export default function App() {
             {/* Registration-only fields */}
             {mode === 'register' && (
               <>
-                <Text style={styles.label}>
+                <Text style={themed('label', styles.label)}>
                   Full name
                 </Text>
 
                 <TextInput
-                  style={styles.input}
+                  style={themed('input', styles.input)}
                   value={name}
                   onChangeText={setName}
-                  placeholder="Enter your full name"
+                  placeholder="Enter your full name" placeholderTextColor={darkMode ? "#A5BBAA" : "#88998D"}
                   autoCapitalize="words"
                 />
 
-                <Text style={styles.label}>
+                <Text style={themed('label', styles.label)}>
                   Mobile number (optional)
                 </Text>
 
                 <TextInput
-                  style={styles.input}
+                  style={themed('input', styles.input)}
                   value={phone}
                   onChangeText={setPhone}
-                  placeholder="Enter mobile number"
+                  placeholder="Enter mobile number" placeholderTextColor={darkMode ? "#A5BBAA" : "#88998D"}
                   keyboardType="phone-pad"
                 />
               </>
             )}
 
             {/* Email */}
-            <Text style={styles.label}>
+            <Text style={themed('label', styles.label)}>
               Email address
             </Text>
 
             <TextInput
-              style={styles.input}
+              style={themed('input', styles.input)}
               value={email}
               onChangeText={setEmail}
-              placeholder="name@example.com"
+              placeholder="name@example.com" placeholderTextColor={darkMode ? "#A5BBAA" : "#88998D"}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
             />
 
             {/* Password */}
-            <Text style={styles.label}>
+            <Text style={themed('label', styles.label)}>
               Password
             </Text>
 
             <TextInput
-              style={styles.input}
+              style={themed('input', styles.input)}
               value={password}
               onChangeText={setPassword}
-              placeholder="At least 8 characters"
+              placeholder="At least 8 characters" placeholderTextColor={darkMode ? "#A5BBAA" : "#88998D"}
               secureTextEntry
               autoCapitalize="none"
             />
@@ -335,14 +352,14 @@ export default function App() {
             {/* Forgot Password */}
             {mode === 'login' && (
               <TouchableOpacity
-                style={styles.forgot}
+                style={themed('forgot', styles.forgot)}
                 onPress={() =>
                   notify(
                     'Password reset will be added in the next step.'
                   )
                 }
               >
-                <Text style={styles.forgotText}>
+                <Text style={themed('forgotText', styles.forgotText)}>
                   Forgot password?
                 </Text>
               </TouchableOpacity>
@@ -352,7 +369,7 @@ export default function App() {
             {!!message && (
               <Text
                 accessibilityRole="alert"
-                style={styles.message}
+                style={themed('message', styles.message)}
               >
                 {message}
               </Text>
@@ -363,14 +380,14 @@ export default function App() {
               disabled={busy}
               onPress={submit}
               style={[
-                styles.button,
-                busy && styles.buttonDisabled,
+                themed('button', styles.button),
+                busy && themed('buttonDisabled', styles.buttonDisabled),
               ]}
             >
               {busy ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={styles.buttonText}>
+                <Text style={themed('buttonText', styles.buttonText)}>
                   {mode === 'login'
                     ? 'Sign in'
                     : 'Create account'}
@@ -379,8 +396,8 @@ export default function App() {
             </TouchableOpacity>
 
             {/* Privacy Policy */}
-            <View style={styles.termsContainer}>
-              <Text style={styles.terms}>
+            <View style={themed('termsContainer', styles.termsContainer)}>
+              <Text style={themed('terms', styles.terms)}>
                 By continuing, you agree to our Terms of
                 Service and
               </Text>
@@ -390,9 +407,9 @@ export default function App() {
                 activeOpacity={0.6}
                 accessibilityRole="button"
                 accessibilityLabel="Open Privacy Policy"
-                style={styles.privacyButton}
+                style={themed('privacyButton', styles.privacyButton)}
               >
-                <Text style={styles.privacyLink}>
+                <Text style={themed('privacyLink', styles.privacyLink)}>
                   Privacy Policy
                 </Text>
               </TouchableOpacity>
@@ -400,7 +417,7 @@ export default function App() {
 
           </View>
 
-          <Text style={styles.footer}>
+          <Text style={themed('footer', styles.footer)}>
             Your wellness, one choice at a time.
           </Text>
 
@@ -411,6 +428,14 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  secondaryPageLogo: {
+    alignItems: 'center',
+    paddingTop: 12,
+    paddingBottom: 8,
+    backgroundColor: '#F3F7F3',
+  },
+  secondaryBrandLogo: { width: 170, height: 72, borderRadius: 15, backgroundColor: "#FFFFFF" },
+  privacyContent: { flex: 1 },
   safe: {
     flex: 1,
     backgroundColor: '#F3F7F3',
@@ -443,7 +468,8 @@ const styles = StyleSheet.create({
   brandLogo: {
     width: 180,
     height: 80,
-    borderRadius: 15,
+    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
   },
 
   tagline: {
@@ -594,3 +620,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
+const appDarkOverrides: Record<string, object> = {
+  safe: { backgroundColor: '#101A16' }, page: { backgroundColor: '#101A16' }, scroll: { backgroundColor: '#101A16' },
+  secondaryPageLogo: { backgroundColor: '#101A16' },
+  card: { backgroundColor: '#1B2A23', borderColor: '#34483B' },
+  tagline: { color: '#B7C9BC' }, tabs: { backgroundColor: '#2A3A30' },
+  selected: { backgroundColor: '#365640' }, tabText: { color: '#C0D2C4' },
+  selectedText: { color: '#B9F2CB' }, heading: { color: '#F1F7F2' },
+  subtitle: { color: '#B5C9BA' }, label: { color: '#DDECE0' },
+  input: { backgroundColor: '#22352A', borderColor: '#45604B', color: '#FFFFFF' },
+  forgotText: { color: '#A6E4BC' }, message: { color: '#F4C2A7' },
+  terms: { color: '#B5C9BA' }, privacyLink: { color: '#A6E4BC' },
+  footer: { color: '#A0B7A6' },
+};
