@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 
 type Answers = {
   age: string; heightCm: string; weightKg: string;
@@ -41,6 +41,8 @@ function validateNumeric(key: NumericKey, value: string): string | null {
 }
 
 export default function AssessmentScreen({ customerName, onLogout }: Props) {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 600;
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>(initial);
   const [error, setError] = useState('');
@@ -113,10 +115,19 @@ export default function AssessmentScreen({ customerName, onLogout }: Props) {
     ['Additional notes', answers.notes || 'Not provided'],
   ];
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
-      <View style={styles.top}><View><Text style={styles.brand}>Nutri Fitora</Text><Text style={styles.greeting}>Hello{customerName ? `, ${customerName}` : ''}!</Text></View>
-        <TouchableOpacity onPress={onLogout} accessibilityRole="button"><Text style={styles.logout}>Sign out</Text></TouchableOpacity></View>
-      <View style={styles.card}>
+    <ScrollView style={styles.screen} contentContainerStyle={[styles.page, isMobile && styles.pageMobile]} keyboardShouldPersistTaps="handled">
+      <View style={[styles.top, isMobile && styles.topMobile]}>
+        <View style={styles.logoBadge}>
+          <Image source={require('../../assets/NutriFitora_logo.png')} style={styles.headerLogo} resizeMode="contain" accessibilityLabel="Nutri Fitora logo" />
+        </View>
+        <TouchableOpacity onPress={onLogout} accessibilityRole="button" accessibilityLabel="Sign out" accessibilityHint="Returns to the login screen" style={styles.logoutButton}>
+          <View style={styles.logoutDoor} />
+          <Text style={styles.logoutArrow}>→</Text>
+          <Text style={styles.logoutLabel}>Logout</Text>
+        </TouchableOpacity>
+      </View>
+      {!!customerName && <Text style={styles.greeting}>Hello, {customerName}!</Text>}
+      <View style={[styles.card, isMobile && styles.cardMobile]}>
         {complete ? <>
           <Text style={styles.eyebrow}>ASSESSMENT COMPLETE</Text>
           <Text style={styles.title}>Thank you for sharing!</Text>
@@ -125,8 +136,9 @@ export default function AssessmentScreen({ customerName, onLogout }: Props) {
           <TouchableOpacity style={styles.primary} onPress={() => { setComplete(false); setStep(3); }}><Text style={styles.primaryText}>Review answers</Text></TouchableOpacity>
         </> : <>
           <Text style={styles.eyebrow}>CUSTOMER NUTRITION ASSESSMENT</Text>
-          <Text style={styles.title}>{stages[step]}</Text>
+          <Text style={[styles.title, isMobile && styles.titleMobile]}>{stages[step]}</Text>
           <Text style={styles.description}>Step {step + 1} of 4 · Help us understand your nutrition needs.</Text>
+          <View style={styles.stepPills}>{stages.map((stage, index) => <View key={stage} style={[styles.stepPill, index === step && styles.stepPillActive, index < step && styles.stepPillDone]}><Text style={[styles.stepPillText, index === step && styles.stepPillTextActive]}>{index < step ? "✓" : index + 1}{!isMobile ? `  ${stage}` : ""}</Text></View>)}</View>
           <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${(step + 1) * 25}%` }]} /></View>
           {step === 0 && <>
             <Text style={styles.section}>Your basic information</Text>
@@ -168,24 +180,40 @@ export default function AssessmentScreen({ customerName, onLogout }: Props) {
   );
 }
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F3F7F3' }, page: { flexGrow: 1, alignItems: 'center', padding: 20, paddingTop: 32, paddingBottom: 50 },
-  top: { width: '100%', maxWidth: 620, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
-  brand: { fontSize: 23, fontWeight: '800', color: '#18392C' }, greeting: { marginTop: 4, color: '#66786C' }, logout: { color: '#246B4A', fontWeight: '700' },
-  card: { width: '100%', maxWidth: 620, padding: 25, backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1, borderColor: '#E2EAE4' },
+  screen: { flex: 1, backgroundColor: '#F3F7F3' }, page: { flexGrow: 1, alignItems: 'center', paddingHorizontal: 26, paddingTop: 28, paddingBottom: 56 },
+  pageMobile: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 32 },
+  top: { width: '100%', maxWidth: 780, minHeight: 86, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 },
+  topMobile: { minHeight: 78 },
+  logoBadge: { width: 180, height: 82, alignItems: 'center', justifyContent: 'center' },
+  headerLogo: { width: 168, height: 72 },
+  greeting: { width: '100%', maxWidth: 780, color: '#557364', textAlign: 'left', marginTop: 0, marginBottom: 18, fontSize: 14, fontWeight: '600' },
+  logoutButton: { width: 66, height: 66, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: '#246B4A' },
+  logoutDoor: { position: 'absolute', left: 22, top: 9, width: 16, height: 22, borderWidth: 2, borderRightWidth: 0, borderColor: '#FFFFFF', borderTopLeftRadius: 3, borderBottomLeftRadius: 3 },
+  logoutArrow: { position: 'absolute', left: 29, top: 5, fontSize: 26, lineHeight: 29, color: '#FFFFFF', fontWeight: '700' },
+  logoutLabel: { position: 'absolute', bottom: 8, color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
+  card: { width: '100%', maxWidth: 780, padding: 34, backgroundColor: '#FFFFFF', borderRadius: 24, borderWidth: 1, borderColor: '#DFEAE2', shadowColor: '#1A4530', shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 9 }, elevation: 4 },
+  cardMobile: { padding: 20, borderRadius: 19 },
+  stepPills: { flexDirection: 'row', gap: 7, marginBottom: 17 },
+  stepPill: { flex: 1, minHeight: 34, borderRadius: 10, backgroundColor: '#F1F5F1', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  stepPillActive: { backgroundColor: '#246B4A' },
+  stepPillDone: { backgroundColor: '#E4F1E8' },
+  stepPillText: { color: '#718277', fontSize: 11, fontWeight: '700', textAlign: 'center' },
+  stepPillTextActive: { color: '#FFFFFF' },
+  titleMobile: { fontSize: 25 },
   eyebrow: { color: '#246B4A', fontSize: 11, fontWeight: '800', letterSpacing: 1.2 }, title: { fontSize: 27, fontWeight: '800', color: '#1C3327', marginTop: 9 },
   description: { color: '#697B70', marginTop: 8, lineHeight: 21, marginBottom: 20 },
   progressTrack: { height: 7, borderRadius: 7, backgroundColor: '#E8F0EA', marginBottom: 25, overflow: 'hidden' }, progressFill: { height: '100%', backgroundColor: '#246B4A', borderRadius: 7 },
   section: { fontSize: 17, fontWeight: '700', color: '#1C3327', marginBottom: 15 }, field: { marginBottom: 20 },
-  label: { color: '#304438', fontSize: 14, fontWeight: '700', marginBottom: 9 }, input: { minHeight: 49, borderWidth: 1, borderColor: '#DCE5DE', borderRadius: 10, paddingHorizontal: 13, paddingVertical: 10, backgroundColor: '#FCFDFC', color: '#20382A' },
+  label: { color: '#304438', fontSize: 14, fontWeight: '700', marginBottom: 9 }, input: { minHeight: 49, borderWidth: 1, borderColor: '#DCE5DE', borderRadius: 10, paddingHorizontal: 13, paddingVertical: 10, backgroundColor: '#FAFCFA', color: '#20382A', fontSize: 15 },
   multiline: { minHeight: 85, textAlignVertical: 'top' }, choices: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
-  choice: { borderWidth: 1, borderColor: '#DCE5DE', paddingVertical: 11, paddingHorizontal: 13, borderRadius: 10, backgroundColor: '#FCFDFC' },
+  choice: { borderWidth: 1, borderColor: '#DCE5DE', paddingVertical: 13, paddingHorizontal: 15, borderRadius: 12, backgroundColor: '#FAFCFA' },
   choiceSelected: { backgroundColor: '#E7F3EB', borderColor: '#246B4A' }, choiceText: { color: '#3B5143' }, choiceTextSelected: { color: '#246B4A', fontWeight: '700' },
   hint: { color: '#7B8980', fontSize: 12, lineHeight: 19, marginBottom: 15 }, error: { color: '#A42C2C', marginBottom: 12 },
   actions: { flexDirection: 'row', gap: 10, marginTop: 18 }, primary: { minHeight: 49, borderRadius: 11, backgroundColor: '#246B4A', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 18 }, primaryText: { color: '#FFFFFF', fontWeight: '800' },
   secondary: { minHeight: 49, borderRadius: 11, borderWidth: 1, borderColor: '#CADACF', paddingHorizontal: 23, justifyContent: 'center' }, secondaryText: { color: '#246B4A', fontWeight: '700' },
   reviewRow: { borderBottomWidth: 1, borderBottomColor: '#EFF3EF', paddingVertical: 11, flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
   reviewLabel: { color: '#697B70', flex: 1 }, reviewValue: { color: '#1C3327', fontWeight: '600', flex: 1, textAlign: 'right' },
-  bmiPanel: { borderWidth: 2, borderColor: '#B6D8C1', borderRadius: 16, backgroundColor: '#EDF8F0', padding: 18, marginBottom: 20, alignItems: 'center' },
+  bmiPanel: { borderWidth: 1, borderColor: '#AED6BA', borderRadius: 20, backgroundColor: '#EAF7EE', padding: 24, marginBottom: 22, alignItems: 'center' },
   bmiHeading: { color: '#365E45', fontSize: 12, fontWeight: '800', letterSpacing: 1 },
   bmiNumber: { fontSize: 44, fontWeight: '900', marginTop: 6 },
   bmiCategory: { fontSize: 16, fontWeight: '800', marginBottom: 8 },
