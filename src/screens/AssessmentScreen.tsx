@@ -118,11 +118,11 @@ export default function AssessmentScreen({ customerName, onLogout, darkMode = fa
   return (
     <ScrollView style={themed('screen', styles.screen)} contentContainerStyle={[themed('page', styles.page), isMobile && themed('pageMobile', styles.pageMobile)]} keyboardShouldPersistTaps="handled">
       <View style={[themed('headerPanel', styles.headerPanel), isMobile && styles.headerPanelMobile]}>
-      <View style={[themed('top', styles.top), isMobile && themed('topMobile', styles.topMobile)]}>
+      <View style={[themed('top', styles.top), isMobile && styles.topMobile]}>
         <View style={themed('logoBadge', styles.logoBadge)}>
           <Image source={require('../../assets/NutriFitora_logo.png')} style={themed('headerLogo', styles.headerLogo)} resizeMode="contain" accessibilityLabel="Nutri Fitora logo" />
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <View style={[styles.headerActions, isMobile && styles.headerActionsMobile]}>
           {!!onToggleTheme && <TouchableOpacity onPress={onToggleTheme} accessibilityRole="button" accessibilityLabel={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} style={[styles.themeButton, darkMode && styles.themeButtonDark]}>
             <Text style={[styles.themeIcon, darkMode && styles.themeIconDark]}>{darkMode ? '☀' : '☾'}</Text>
             <Text style={[styles.themeLabel, darkMode && styles.themeLabelDark]}>{darkMode ? 'Light' : 'Dark'}</Text>
@@ -194,7 +194,9 @@ const styles = StyleSheet.create({
   headerPanel: { width: '100%', maxWidth: 780, backgroundColor: '#FFFFFF', borderRadius: 24, borderWidth: 1, borderColor: '#DFEAE2', paddingHorizontal: 30, paddingTop: 14, paddingBottom: 14, marginBottom: 18, shadowColor: '#1A4530', shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 9 }, elevation: 4 },
   headerPanelMobile: { paddingHorizontal: 14, paddingTop: 8, paddingBottom: 10, borderRadius: 19, marginBottom: 14 },
   top: { width: '100%', maxWidth: 780, minHeight: 86, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 },
-  topMobile: { minHeight: 78 },
+  topMobile: { minHeight: 78, flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 6 },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  headerActionsMobile: { flexShrink: 0, marginLeft: 'auto' },
   logoBadge: { width: 180, height: 82, alignItems: 'center', justifyContent: 'center' },
   headerLogo: { width: 168, height: 72 },
   greeting: { width: '100%', maxWidth: 780, color: '#557364', textAlign: 'left', marginTop: 0, marginBottom: 0, fontSize: 14, fontWeight: '600' },
