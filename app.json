@@ -1,15 +1,14 @@
-
 {
   "expo": {
-    "name": "NutriFitora",
+    "name": "Nutri Fitora",
     "slug": "nutrifitora-customer",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "web": {
       "bundler": "metro",
-      "name": "NutriFitora",
-      "shortName": "NutriFitora",
+      "name": "Nutri Fitora",
+      "shortName": "Nutri Fitora",
       "themeColor": "#246B4A",
       "backgroundColor": "#F3F7F3"
     }
