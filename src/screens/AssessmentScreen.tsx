@@ -7,7 +7,7 @@ type Answers = {
   meals: string; water: string; sleep: string; allergies: string; notes: string;
 };
 
-type Props = { customerName?: string; onLogout: () => void };
+type Props = { customerName?: string; onLogout: () => void; darkMode?: boolean; onToggleTheme?: () => void };
 const initial: Answers = { age: '', heightCm: '', weightKg: '', goal: '', activity: '', diet: '', meals: '', water: '', sleep: '', allergies: '', notes: '' };
 const goals = ['Improve general health', 'Manage weight', 'Build strength', 'Improve energy', 'Improve eating habits'];
 const activities = ['Mostly sitting', 'Lightly active', 'Moderately active', 'Very active'];
@@ -40,7 +40,8 @@ function validateNumeric(key: NumericKey, value: string): string | null {
   return null;
 }
 
-export default function AssessmentScreen({ customerName, onLogout }: Props) {
+export default function AssessmentScreen({ customerName, onLogout, darkMode = false, onToggleTheme }: Props) {
+  const themed = (key: string, style: any) => darkMode ? [style, darkOverrides[key]] : style;
   const { width } = useWindowDimensions();
   const isMobile = width < 600;
   const [step, setStep] = useState(0);
@@ -49,23 +50,23 @@ export default function AssessmentScreen({ customerName, onLogout }: Props) {
   const [complete, setComplete] = useState(false);
   const update = (key: keyof Answers, value: string) => { setAnswers(prev => ({ ...prev, [key]: value })); setError(''); };
   const numeric = (key: NumericKey, label: string, placeholder: string, optional = false) => (
-    <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
-      <TextInput style={styles.input} keyboardType={numericRules[key].integer ? 'number-pad' : 'decimal-pad'} placeholder={placeholder} value={answers[key]} onChangeText={value => update(key, sanitizeNumeric(value, numericRules[key].integer))} maxLength={8} accessibilityLabel={label} />
+    <View style={themed('field', styles.field)}>
+      <Text style={themed('label', styles.label)}>{label}</Text>
+      <TextInput style={themed('input', styles.input)} placeholderTextColor={darkMode ? '#A5BBAA' : '#88998D'} keyboardType={numericRules[key].integer ? 'number-pad' : 'decimal-pad'} placeholder={placeholder} value={answers[key]} onChangeText={value => update(key, sanitizeNumeric(value, numericRules[key].integer))} maxLength={8} accessibilityLabel={label} />
     </View>
   );
   const textField = (key: keyof Answers, label: string, placeholder: string, multiline = false) => (
-    <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
-      <TextInput style={[styles.input, multiline && styles.multiline]} multiline={multiline} placeholder={placeholder} value={answers[key]} onChangeText={value => update(key, value)} />
+    <View style={themed('field', styles.field)}>
+      <Text style={themed('label', styles.label)}>{label}</Text>
+      <TextInput style={[themed('input', styles.input), multiline && themed('multiline', styles.multiline)]} multiline={multiline} placeholderTextColor={darkMode ? '#A5BBAA' : '#88998D'} placeholder={placeholder} value={answers[key]} onChangeText={value => update(key, value)} />
     </View>
   );
   const choice = (key: keyof Answers, label: string, options: string[]) => (
-    <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={styles.choices}>{options.map(option => (
-        <TouchableOpacity accessibilityRole="button" accessibilityState={{ selected: answers[key] === option }} key={option} style={[styles.choice, answers[key] === option && styles.choiceSelected]} onPress={() => update(key, option)}>
-          <Text style={[styles.choiceText, answers[key] === option && styles.choiceTextSelected]}>{option}</Text>
+    <View style={themed('field', styles.field)}>
+      <Text style={themed('label', styles.label)}>{label}</Text>
+      <View style={themed('choices', styles.choices)}>{options.map(option => (
+        <TouchableOpacity accessibilityRole="button" accessibilityState={{ selected: answers[key] === option }} key={option} style={[themed('choice', styles.choice), answers[key] === option && themed('choiceSelected', styles.choiceSelected)]} onPress={() => update(key, option)}>
+          <Text style={[themed('choiceText', styles.choiceText), answers[key] === option && themed('choiceTextSelected', styles.choiceTextSelected)]}>{option}</Text>
         </TouchableOpacity>
       ))}</View>
     </View>
@@ -98,13 +99,13 @@ export default function AssessmentScreen({ customerName, onLogout }: Props) {
     ? Number(answers.weightKg) / (heightMeters * heightMeters)
     : null;
   const bmiCategory = bmi === null ? '' : bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Healthy weight' : bmi < 30 ? 'Overweight' : 'Obesity';
-  const bmiColor = bmi === null ? '#246B4A' : bmi < 18.5 ? '#8A5A16' : bmi < 25 ? '#246B4A' : bmi < 30 ? '#A65C12' : '#A42C2C';
+  const bmiColor = darkMode ? (bmi === null ? '#A9EAC0' : bmi < 18.5 ? '#FFD38A' : bmi < 25 ? '#A9EAC0' : bmi < 30 ? '#FFD38A' : '#FFAAAA') : (bmi === null ? '#246B4A' : bmi < 18.5 ? '#8A5A16' : bmi < 25 ? '#246B4A' : bmi < 30 ? '#A65C12' : '#A42C2C');
   const bmiPanel = bmi !== null ? (
-    <View style={styles.bmiPanel} accessibilityRole="summary">
-      <Text style={styles.bmiHeading}>YOUR BODY MASS INDEX (BMI)</Text>
-      <Text style={[styles.bmiNumber, { color: bmiColor }]}>{bmi.toFixed(1)}</Text>
-      <Text style={[styles.bmiCategory, { color: bmiColor }]}>{bmiCategory}</Text>
-      <Text style={styles.bmiNote}>Calculated from your height and weight. BMI is a screening measure, not a diagnosis, and may not reflect individual body composition.</Text>
+    <View style={themed('bmiPanel', styles.bmiPanel)} accessibilityRole="summary">
+      <Text style={themed('bmiHeading', styles.bmiHeading)}>YOUR BODY MASS INDEX (BMI)</Text>
+      <Text style={[themed('bmiNumber', styles.bmiNumber), { color: bmiColor }]}>{bmi.toFixed(1)}</Text>
+      <Text style={[themed('bmiCategory', styles.bmiCategory), { color: bmiColor }]}>{bmiCategory}</Text>
+      <Text style={themed('bmiNote', styles.bmiNote)}>Calculated from your height and weight. BMI is a screening measure, not a diagnosis, and may not reflect individual body composition.</Text>
     </View>
   ) : null;
   const rows: Array<[string, string]> = [
@@ -115,38 +116,46 @@ export default function AssessmentScreen({ customerName, onLogout }: Props) {
     ['Additional notes', answers.notes || 'Not provided'],
   ];
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={[styles.page, isMobile && styles.pageMobile]} keyboardShouldPersistTaps="handled">
-      <View style={[styles.top, isMobile && styles.topMobile]}>
-        <View style={styles.logoBadge}>
-          <Image source={require('../../assets/NutriFitora_logo.png')} style={styles.headerLogo} resizeMode="contain" accessibilityLabel="Nutri Fitora logo" />
+    <ScrollView style={themed('screen', styles.screen)} contentContainerStyle={[themed('page', styles.page), isMobile && themed('pageMobile', styles.pageMobile)]} keyboardShouldPersistTaps="handled">
+      <View style={[themed('headerPanel', styles.headerPanel), isMobile && styles.headerPanelMobile]}>
+      <View style={[themed('top', styles.top), isMobile && themed('topMobile', styles.topMobile)]}>
+        <View style={themed('logoBadge', styles.logoBadge)}>
+          <Image source={require('../../assets/NutriFitora_logo.png')} style={themed('headerLogo', styles.headerLogo)} resizeMode="contain" accessibilityLabel="Nutri Fitora logo" />
         </View>
-        <TouchableOpacity onPress={onLogout} accessibilityRole="button" accessibilityLabel="Sign out" accessibilityHint="Returns to the login screen" style={styles.logoutButton}>
-          <View style={styles.logoutDoor} />
-          <Text style={styles.logoutArrow}>→</Text>
-          <Text style={styles.logoutLabel}>Logout</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          {!!onToggleTheme && <TouchableOpacity onPress={onToggleTheme} accessibilityRole="button" accessibilityLabel={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} style={[styles.themeButton, darkMode && styles.themeButtonDark]}>
+            <Text style={[styles.themeIcon, darkMode && styles.themeIconDark]}>{darkMode ? '☀' : '☾'}</Text>
+            <Text style={[styles.themeLabel, darkMode && styles.themeLabelDark]}>{darkMode ? 'Light' : 'Dark'}</Text>
+          </TouchableOpacity>}
+        <TouchableOpacity onPress={onLogout} accessibilityRole="button" accessibilityLabel="Sign out" accessibilityHint="Returns to the login screen" style={[styles.logoutButton, darkMode && styles.logoutButtonDark]}>
+          <View style={[styles.logoutDoor, darkMode && styles.logoutDoorDark]} />
+          <Text style={[styles.logoutArrow, darkMode && styles.logoutArrowDark]}>→</Text>
+          <Text style={[styles.logoutLabel, darkMode && styles.logoutLabelDark]}>Logout</Text>
         </TouchableOpacity>
+        </View>
       </View>
-      {!!customerName && <Text style={styles.greeting}>Hello, {customerName}!</Text>}
-      <View style={[styles.card, isMobile && styles.cardMobile]}>
+      {!!customerName && <Text style={themed('greeting', styles.greeting)}>Hello, {customerName}!</Text>}
+      </View>
+      <View style={[themed('card', styles.card), isMobile && themed('cardMobile', styles.cardMobile)]}>
         {complete ? <>
-          <Text style={styles.eyebrow}>ASSESSMENT COMPLETE</Text>
-          <Text style={styles.title}>Thank you for sharing!</Text>
+          <Text style={themed('eyebrow', styles.eyebrow)}>ASSESSMENT COMPLETE</Text>
+          <Text style={themed('title', styles.title)}>Thank you for sharing!</Text>
           {bmiPanel}
-          <Text style={styles.description}>Your assessment is complete for this session. Your answers have not yet been saved to the server. A nutritionist can use this information once assessment storage is connected.</Text>
-          <TouchableOpacity style={styles.primary} onPress={() => { setComplete(false); setStep(3); }}><Text style={styles.primaryText}>Review answers</Text></TouchableOpacity>
+          <Text style={themed('description', styles.description)}>Your assessment is complete for this session. Your answers have not yet been saved to the server. A nutritionist can use this information once assessment storage is connected.</Text>
+          <TouchableOpacity style={themed('primary', styles.primary)} onPress={() => { setComplete(false); setStep(3); }}><Text style={themed('primaryText', styles.primaryText)}>Review answers</Text></TouchableOpacity>
         </> : <>
-          <Text style={styles.eyebrow}>CUSTOMER NUTRITION ASSESSMENT</Text>
-          <Text style={[styles.title, isMobile && styles.titleMobile]}>{stages[step]}</Text>
-          <Text style={styles.description}>Step {step + 1} of 4 · Help us understand your nutrition needs.</Text>
-          <View style={styles.stepPills}>{stages.map((stage, index) => <View key={stage} style={[styles.stepPill, index === step && styles.stepPillActive, index < step && styles.stepPillDone]}><Text style={[styles.stepPillText, index === step && styles.stepPillTextActive]}>{index < step ? "✓" : index + 1}{!isMobile ? `  ${stage}` : ""}</Text></View>)}</View>
-          <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${(step + 1) * 25}%` }]} /></View>
+          <Text style={themed('eyebrow', styles.eyebrow)}>CUSTOMER NUTRITION ASSESSMENT</Text>
+          <Text style={[themed('title', styles.title), isMobile && themed('titleMobile', styles.titleMobile)]}>{stages[step]}</Text>
+          <Text style={themed('description', styles.description)}>Step {step + 1} of 4 · Help us understand your nutrition needs.</Text>
+          <View style={themed('stepPills', styles.stepPills)}>{stages.map((stage, index) => <View key={stage} style={[themed('stepPill', styles.stepPill), index === step && themed('stepPillActive', styles.stepPillActive), index < step && themed('stepPillDone', styles.stepPillDone)]}><Text style={[themed('stepPillText', styles.stepPillText), index === step && themed('stepPillTextActive', styles.stepPillTextActive)]}>{index < step ? "✓" : index + 1}{!isMobile ? `  ${stage}` : ""}</Text></View>)}</View>
+          <View style={themed('progressTrack', styles.progressTrack)}><View style={[themed('progressFill', styles.progressFill), { width: `${(step + 1) * 25}%` }]} /></View>
           {step === 0 && <>
-            <Text style={styles.section}>Your basic information</Text>
+            <Text style={themed('section', styles.section)}>Your basic information</Text>
             {numeric('age', 'Age (18+)', 'e.g. 28')}
             {numeric('heightCm', 'Height (cm)', 'e.g. 165')}
             {numeric('weightKg', 'Weight (kg)', 'e.g. 65')}
             {bmiPanel}
-            <Text style={styles.hint}>These details are for assessment context, not a medical diagnosis.</Text>
+            <Text style={themed('hint', styles.hint)}>These details are for assessment context, not a medical diagnosis.</Text>
           </>}
           {step === 1 && <>
             {choice('goal', 'What is your primary goal?', goals)}
@@ -161,32 +170,44 @@ export default function AssessmentScreen({ customerName, onLogout }: Props) {
             {textField('notes', 'Anything else for your nutritionist? (optional)', 'Share your routine or preferences', true)}
           </>}
           {step === 3 && <>
-            <Text style={styles.section}>Review your answers</Text>
+            <Text style={themed('section', styles.section)}>Review your answers</Text>
             {bmiPanel}
-            {rows.map(([label, value]) => <View key={label} style={styles.reviewRow}><Text style={styles.reviewLabel}>{label}</Text><Text style={styles.reviewValue}>{value}</Text></View>)}
-            <Text style={styles.hint}>Completing this form does not submit information to the API yet.</Text>
+            {rows.map(([label, value]) => <View key={label} style={themed('reviewRow', styles.reviewRow)}><Text style={themed('reviewLabel', styles.reviewLabel)}>{label}</Text><Text style={themed('reviewValue', styles.reviewValue)}>{value}</Text></View>)}
+            <Text style={themed('hint', styles.hint)}>Completing this form does not submit information to the API yet.</Text>
           </>}
-          {!!error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
-          <View style={styles.actions}>
-            {step > 0 && <TouchableOpacity style={styles.secondary} onPress={() => { setError(''); setStep(s => s - 1); }}><Text style={styles.secondaryText}>Back</Text></TouchableOpacity>}
-            <TouchableOpacity style={[styles.primary, { flex: 1 }]} onPress={step === 3 ? () => setComplete(true) : next}>
-              <Text style={styles.primaryText}>{step === 3 ? 'Complete assessment' : 'Continue'}</Text>
+          {!!error && <Text accessibilityRole="alert" style={themed('error', styles.error)}>{error}</Text>}
+          <View style={themed('actions', styles.actions)}>
+            {step > 0 && <TouchableOpacity style={themed('secondary', styles.secondary)} onPress={() => { setError(''); setStep(s => s - 1); }}><Text style={themed('secondaryText', styles.secondaryText)}>Back</Text></TouchableOpacity>}
+            <TouchableOpacity style={[themed('primary', styles.primary), { flex: 1 }]} onPress={step === 3 ? () => setComplete(true) : next}>
+              <Text style={themed('primaryText', styles.primaryText)}>{step === 3 ? 'Complete assessment' : 'Continue'}</Text>
             </TouchableOpacity>
           </View>
         </>}
       </View>
-      <Text style={styles.footer}>Your wellness, one choice at a time.</Text>
+      <Text style={themed('footer', styles.footer)}>Your wellness, one choice at a time.</Text>
     </ScrollView>
   );
 }
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#F3F7F3' }, page: { flexGrow: 1, alignItems: 'center', paddingHorizontal: 26, paddingTop: 28, paddingBottom: 56 },
   pageMobile: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 32 },
+  headerPanel: { width: '100%', maxWidth: 780, backgroundColor: '#FFFFFF', borderRadius: 24, borderWidth: 1, borderColor: '#DFEAE2', paddingHorizontal: 30, paddingTop: 14, paddingBottom: 14, marginBottom: 18, shadowColor: '#1A4530', shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 9 }, elevation: 4 },
+  headerPanelMobile: { paddingHorizontal: 14, paddingTop: 8, paddingBottom: 10, borderRadius: 19, marginBottom: 14 },
   top: { width: '100%', maxWidth: 780, minHeight: 86, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 },
   topMobile: { minHeight: 78 },
   logoBadge: { width: 180, height: 82, alignItems: 'center', justifyContent: 'center' },
   headerLogo: { width: 168, height: 72 },
-  greeting: { width: '100%', maxWidth: 780, color: '#557364', textAlign: 'left', marginTop: 0, marginBottom: 18, fontSize: 14, fontWeight: '600' },
+  greeting: { width: '100%', maxWidth: 780, color: '#557364', textAlign: 'left', marginTop: 0, marginBottom: 0, fontSize: 14, fontWeight: '600' },
+  themeButton: { width: 66, height: 66, borderRadius: 12, backgroundColor: '#E5F1E8', alignItems: 'center', justifyContent: 'center' },
+  themeButtonDark: { backgroundColor: '#F4F8F4' },
+  themeIcon: { fontSize: 27, color: '#246B4A', lineHeight: 32 },
+  themeIconDark: { color: '#246B4A' },
+  themeLabel: { fontSize: 11, fontWeight: '700', color: '#246B4A' },
+  themeLabelDark: { color: '#246B4A' },
+  logoutButtonDark: { backgroundColor: '#F4F8F4' },
+  logoutDoorDark: { borderColor: '#246B4A' },
+  logoutArrowDark: { color: '#246B4A' },
+  logoutLabelDark: { color: '#246B4A' },
   logoutButton: { width: 66, height: 66, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: '#246B4A' },
   logoutDoor: { position: 'absolute', left: 22, top: 9, width: 16, height: 22, borderWidth: 2, borderRightWidth: 0, borderColor: '#FFFFFF', borderTopLeftRadius: 3, borderBottomLeftRadius: 3 },
   logoutArrow: { position: 'absolute', left: 29, top: 5, fontSize: 26, lineHeight: 29, color: '#FFFFFF', fontWeight: '700' },
@@ -220,3 +241,42 @@ const styles = StyleSheet.create({
   bmiNote: { color: '#65796B', fontSize: 12, textAlign: 'center', lineHeight: 18 },
   footer: { color: '#9AA69D', fontSize: 12, marginTop: 20, textAlign: 'center' },
 });
+
+
+const darkOverrides: Record<string, object> = {
+  screen: { backgroundColor: '#101A16' },
+  page: { backgroundColor: '#101A16' },
+  greeting: { color: '#B4CBBE' },
+  headerPanel: { backgroundColor: '#1B2A23', borderColor: '#34483B', shadowColor: '#000000' },
+  card: { backgroundColor: '#1B2A23', borderColor: '#34483B', shadowColor: '#000000' },
+  stepPill: { backgroundColor: '#2B3C32' },
+  stepPillActive: { backgroundColor: '#30845B' },
+  stepPillDone: { backgroundColor: '#244D36' },
+  stepPillText: { color: '#C1D1C5' },
+  stepPillTextActive: { color: '#FFFFFF' },
+  eyebrow: { color: '#8DD5A9' },
+  title: { color: '#F1F7F2' },
+  description: { color: '#B2C4B7' },
+  progressTrack: { backgroundColor: '#304437' },
+  progressFill: { backgroundColor: '#53AE79' },
+  section: { color: '#F1F7F2' },
+  label: { color: '#DBEBDD' },
+  input: { backgroundColor: '#22352A', borderColor: '#45604B', color: '#FFFFFF', placeholderTextColor: '#9CB3A3' },
+  choice: { backgroundColor: '#22352A', borderColor: '#45604B' },
+  choiceSelected: { backgroundColor: '#24533A', borderColor: '#65C48B' },
+  choiceText: { color: '#E2EEE5' },
+  choiceTextSelected: { color: '#B6F0C9' },
+  hint: { color: '#ACBFB0' },
+  error: { color: '#FF9B9B' },
+  primary: { backgroundColor: '#30845B' },
+  secondary: { backgroundColor: '#22352A', borderColor: '#5C8067' },
+  secondaryText: { color: '#B6F0C9' },
+  reviewRow: { borderBottomColor: '#34483B' },
+  reviewLabel: { color: '#B2C4B7' },
+  reviewValue: { color: '#F1F7F2' },
+  bmiPanel: { backgroundColor: '#203E2D', borderColor: '#4B986A' },
+  bmiHeading: { color: '#B7E7C7' },
+  bmiNote: { color: '#B9CDBD' },
+  footer: { color: '#9DB4A3' },
+  logoutButton: { backgroundColor: '#F4F8F4' },
+};
