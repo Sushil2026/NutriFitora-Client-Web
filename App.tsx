@@ -16,6 +16,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 
 import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
+import AssessmentScreen from './src/screens/AssessmentScreen';
 
 // Expo reads EXPO_PUBLIC_* values from frontend/.env at startup.
 // Use the deployed API by default, including when testing locally in a browser.
@@ -41,6 +42,8 @@ export default function App() {
   }, []);
 
   const [mode, setMode] = useState<Mode>('login');
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [customerName, setCustomerName] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -138,9 +141,8 @@ export default function App() {
           `Welcome${data.user?.fullName ? ` ${data.user.fullName}` : ''}! Login successful.`
         );
         setPassword('');
-
-        // Customer dashboard and secure token storage
-        // can be connected here later.
+        setCustomerName(data.user?.fullName || '');
+        setLoggedIn(true);
       }
     } catch (error) {
       const isNetworkError =
@@ -161,6 +163,21 @@ export default function App() {
   function openPrivacyPolicy() {
     console.log('Opening Privacy Policy');
     setShowPrivacyPolicy(true);
+  }
+
+  if (loggedIn) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <StatusBar style="dark" />
+        <AssessmentScreen customerName={customerName} onLogout={() => {
+          setLoggedIn(false);
+          setCustomerName('');
+          setPassword('');
+          setMessage('');
+          setMode('login');
+        }} />
+      </SafeAreaView>
+    );
   }
 
   // Privacy Policy screen
