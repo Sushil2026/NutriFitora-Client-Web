@@ -12,7 +12,7 @@ type Program = {
   priceInr: number | null;
   description: string | null;
   goal: string | null;
-  includes: string | null;
+  includes: string | string[] | null;
   bestFor: string | null;
   isPurchasable: boolean;
 };
@@ -33,6 +33,17 @@ const icons: Record<string, string> = {
 };
 
 const money = (amount: number) => '₹' + amount.toLocaleString('en-IN');
+
+// Neon may return inclusions as text; also support arrays and missing values.
+const getProgramIncludes = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === 'string' && !!item.trim());
+  }
+  if (typeof value === 'string') {
+    return value.split(/\r?\n|;/).map(item => item.trim()).filter(Boolean);
+  }
+  return [];
+};
 
 export default function ProgramsScreen({
   darkMode = false, onToggleTheme, onBack, onLogout, customerName,
@@ -146,11 +157,7 @@ export default function ProgramsScreen({
         {!loading && programs.map(program => {
           const open = expandedId === program.id;
           const hasPrice = program.priceInr !== null;
-          const canBuy = hasPrice && program.isPurchasable;
-          const fields = [
-            ['Goal', program.goal], ['Includes', program.includes],
-            ['Best for', program.bestFor],
-          ].filter(([, value]) => !!value);
+          const inclusions = getProgramIncludes(program.includes);
 
           return (
             <View key={program.id}
@@ -172,8 +179,8 @@ export default function ProgramsScreen({
                     {program.durationWeeks} weeks
                   </Text>
                 </View>
-                <View style={[styles.priceBadge, { backgroundColor: hasPrice ? palette.badge : palette.inactive }]}>
-                  <Text style={[styles.price, { color: hasPrice ? palette.text : '#48544E' }]}>
+                <View style={[styles.priceBadge, { backgroundColor: hasPrice ? palette.badge : (darkMode ? '#355F50' : '#E5E9E7') }]}>
+                  <Text style={[styles.price, { color: hasPrice ? palette.text : (darkMode ? '#FFFFFF' : '#345B47') }]}>
                     {hasPrice ? money(program.priceInr!) : 'Coming Soon'}
                   </Text>
                 </View>
@@ -182,32 +189,49 @@ export default function ProgramsScreen({
 
               {open && (
                 <View style={styles.details}>
-                  <Text style={[styles.detailsHeading, { color: palette.text }]}>Program Details</Text>
-                  {program.description
-                    ? <Text style={[styles.description, { color: palette.muted }]}>{program.description}</Text>
-                    : <Text style={[styles.description, { color: palette.muted }]}>
-                        Full program details will be added soon.
-                      </Text>}
-                  <Text style={[styles.detailLine, { color: palette.text }]}>
-                    Duration: {program.durationWeeks} weeks
+                  <Text style={[styles.detailsHeading, { color: palette.text }]}>{program.programName}</Text>
+                  <View style={[styles.durationPill, { backgroundColor: palette.badge }]}>
+                    <Text style={[styles.durationPillText, { color: palette.text }]}>{program.durationWeeks} weeks</Text>
+                  </View>
+                  <Text style={[styles.description, { color: palette.text }]}>
+                    {program.description || 'Program description coming soon.'}
                   </Text>
-                  {fields.map(([label, value]) => (
-                    <Text key={label} style={[styles.detailLine, { color: palette.text }]}>
-                      {label}: {value}
+                  {!!program.goal && (
+                    <View style={styles.detailSection}>
+                      <Text style={[styles.detailSectionTitle, { color: palette.text }]}>Your goal</Text>
+                      <Text style={[styles.detailLine, { color: palette.muted }]}>{program.goal}</Text>
+                    </View>
+                  )}
+                  {(inclusions.length > 0 || !program.includes) && (
+                    <View style={styles.detailSection}>
+                      <Text style={[styles.detailSectionTitle, { color: palette.text }]}>What's included</Text>
+                      {inclusions.length === 0 && <Text style={[styles.detailLine, { color: palette.muted }]}>Program inclusions will be updated soon.</Text>}
+                      {inclusions.map((item, index) => (
+                        <View key={`${program.id}-${index}`} style={[styles.inclusionRow, { borderBottomColor: palette.border }]}>
+                          <Text style={[styles.checkmark, { color: palette.accent }]}>✓</Text>
+                          <Text style={[styles.inclusionText, { color: palette.text }]}>{item}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                  {!!program.bestFor && (
+                    <View style={styles.detailSection}>
+                      <Text style={[styles.detailSectionTitle, { color: palette.text }]}>Best for</Text>
+                      <Text style={[styles.detailLine, { color: palette.muted }]}>{program.bestFor}</Text>
+                    </View>
+                  )}
+                  <View style={[styles.checkoutRow, { borderColor: palette.border, backgroundColor: palette.header }]}>
+                    <Text style={[styles.checkoutPrice, { color: palette.text }]}>
+                      {hasPrice ? money(program.priceInr!) : 'Price Coming Soon'}
                     </Text>
-                  ))}
-                  <TouchableOpacity
-                    disabled
-                    accessibilityRole="button"
-                    accessibilityState={{ disabled: true }}
-                    style={[styles.buy, { backgroundColor: canBuy ? palette.button : palette.inactive }]}
-                  >
-                    <Text style={[styles.buyText, { color: canBuy ? palette.buttonText : '#4F6258' }]}>
-                      {!hasPrice ? 'Price Coming Soon' : 'Purchasing Available Soon'}
-                    </Text>
-                  </TouchableOpacity>
+                    <TouchableOpacity disabled accessibilityRole="button"
+                      accessibilityState={{ disabled: true }}
+                      style={[styles.checkoutButton, { backgroundColor: darkMode ? '#355F50' : '#E5E9E7' }]}>
+                      <Text style={[styles.checkoutButtonText, { color: darkMode ? '#FFFFFF' : '#345B47' }]}>{hasPrice ? 'Buy Soon' : 'Coming Soon'}</Text>
+                    </TouchableOpacity>
+                  </View>
                   <Text style={[styles.note, { color: palette.muted }]}>
-                    Online checkout is not connected yet.
+                    Checkout is not connected yet. No payment will be collected.
                   </Text>
                 </View>
               )}
@@ -271,6 +295,17 @@ const styles = StyleSheet.create({
   price: { fontSize: 12, fontWeight: '800' },
   chevron: { fontSize: 25, fontWeight: '700', width: 18, textAlign: 'center' },
   details: { paddingHorizontal: 18, paddingTop: 18, paddingBottom: 20 },
+  durationPill: { alignSelf: 'flex-start', borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5, marginBottom: 14 },
+  durationPillText: { fontSize: 12, fontWeight: '700' },
+  detailSection: { marginBottom: 16 },
+  detailSectionTitle: { fontSize: 14, fontWeight: '800', marginBottom: 8 },
+  inclusionRow: { flexDirection: 'row', gap: 9, alignItems: 'flex-start', borderBottomWidth: 1, paddingVertical: 9 },
+  checkmark: { fontSize: 17, fontWeight: '800', width: 18 },
+  inclusionText: { fontSize: 13, lineHeight: 20, flex: 1 },
+  checkoutRow: { borderWidth: 1, borderRadius: 12, padding: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 },
+  checkoutPrice: { fontSize: 19, fontWeight: '800', flexShrink: 1 },
+  checkoutButton: { borderRadius: 8, paddingHorizontal: 14, paddingVertical: 10, marginLeft: 8 },
+  checkoutButtonText: { color: '#52645A', fontWeight: '800', fontSize: 13 },
   detailsHeading: { fontSize: 18, fontWeight: '800', marginBottom: 10 },
   description: { fontSize: 14, lineHeight: 22, marginBottom: 12 },
   detailLine: { fontSize: 14, lineHeight: 23, marginBottom: 6 },
@@ -278,3 +313,4 @@ const styles = StyleSheet.create({
   buyText: { fontSize: 15, fontWeight: '800' },
   note: { fontSize: 12, textAlign: 'center', marginTop: 8 },
 });
+
