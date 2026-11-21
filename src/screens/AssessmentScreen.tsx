@@ -1,6 +1,29 @@
 import React, { useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 
+
+// Decorative shapes use native Views; no external image or animation package.
+function BotanicalAccent({ dark = false, bottom = false }: { dark?: boolean; bottom?: boolean }) {
+  const leafColor = dark ? '#235F50' : '#A9D98A';
+  return (
+    <View pointerEvents="none" style={{ position: 'absolute', ...(bottom ? { bottom: -18, right: -22 } : { top: -20, left: -22 }), width: 145, height: 150, opacity: dark ? 0.5 : 0.72 }}>
+      <View style={{ position: 'absolute', left: 70, top: 20, width: 3, height: 124, backgroundColor: dark ? '#3E9377' : '#85BD6D', transform: [{ rotate: '35deg' }] }} />
+      {[[25,28,-32],[65,20,35],[24,76,-40],[75,70,40],[58,108,25]].map(([x,y,r], i) => (
+        <View key={i} style={{ position: 'absolute', left: x, top: y, width: 51, height: 24, borderTopLeftRadius: 48, borderBottomRightRadius: 48, backgroundColor: leafColor, transform: [{ rotate: `${r}deg` }] }} />
+      ))}
+    </View>
+  );
+}
+function BotanicalWaves({ dark = false }: { dark?: boolean }) {
+  return (
+    <View pointerEvents="none" style={{ height: 98, overflow: 'hidden', width: '100%', position: 'relative', marginTop: 18 }}>
+      <View style={{ position: 'absolute', left: -45, right: -45, top: 26, height: 170, borderTopLeftRadius: 170, borderTopRightRadius: 220, backgroundColor: dark ? '#174F47' : '#D9F2D1', transform: [{ rotate: '-6deg' }] }} />
+      <View style={{ position: 'absolute', left: -40, right: -45, top: 56, height: 150, borderTopLeftRadius: 190, borderTopRightRadius: 170, backgroundColor: dark ? '#227568' : '#AFE4A0', transform: [{ rotate: '5deg' }] }} />
+      <BotanicalAccent dark={dark} bottom />
+    </View>
+  );
+}
+
 type Answers = {
   age: string; heightCm: string; weightKg: string;
   goal: string; activity: string; diet: string;
@@ -117,15 +140,17 @@ export default function AssessmentScreen({ customerName, onLogout, darkMode = fa
   ];
   return (
     <ScrollView style={themed('screen', styles.screen)} contentContainerStyle={[themed('page', styles.page), isMobile && themed('pageMobile', styles.pageMobile)]} keyboardShouldPersistTaps="handled">
+      <BotanicalAccent dark={darkMode} />
       <View style={[themed('headerPanel', styles.headerPanel), isMobile && styles.headerPanelMobile]}>
       <View style={[themed('top', styles.top), isMobile && styles.topMobile]}>
         <View style={themed('logoBadge', styles.logoBadge)}>
-          <Image source={require('../../assets/NutriFitora_logo.png')} style={themed('headerLogo', styles.headerLogo)} resizeMode="contain" accessibilityLabel="Nutri Fitora logo" />
+          <Image source={darkMode ? require('../../assets/NutriFitora_logo_white.png') : require('../../assets/NutriFitora_logo.png')} style={themed('headerLogo', styles.headerLogo)} resizeMode="contain" accessibilityLabel="Nutri Fitora logo" />
         </View>
         <View style={[styles.headerActions, isMobile && styles.headerActionsMobile]}>
-          {!!onToggleTheme && <TouchableOpacity onPress={onToggleTheme} accessibilityRole="button" accessibilityLabel={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} style={[styles.themeButton, darkMode && styles.themeButtonDark]}>
-            <Text style={[styles.themeIcon, darkMode && styles.themeIconDark]}>{darkMode ? '☀' : '☾'}</Text>
-            <Text style={[styles.themeLabel, darkMode && styles.themeLabelDark]}>{darkMode ? 'Light' : 'Dark'}</Text>
+          {!!onToggleTheme && <TouchableOpacity onPress={onToggleTheme} accessibilityRole="switch" accessibilityState={{ checked: darkMode }} accessibilityLabel={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} style={[styles.themeButton, isMobile && styles.themeButtonCompact, darkMode && styles.themeButtonDark]}>
+            <View style={[styles.themeThumb, isMobile && styles.themeThumbCompact, darkMode ? styles.themeThumbDark : styles.themeThumbLight]}>
+              <Text style={[styles.themeIcon, isMobile && styles.themeIconCompact, darkMode && styles.themeIconDark]}>{darkMode ? '☾' : '☀'}</Text>
+            </View>
           </TouchableOpacity>}
         <TouchableOpacity onPress={onLogout} accessibilityRole="button" accessibilityLabel="Sign out" accessibilityHint="Returns to the login screen" style={[styles.logoutButton, darkMode && styles.logoutButtonDark]}>
           <View style={[styles.logoutDoor, darkMode && styles.logoutDoorDark]} />
@@ -185,13 +210,14 @@ export default function AssessmentScreen({ customerName, onLogout, darkMode = fa
         </>}
       </View>
       <Text style={themed('footer', styles.footer)}>Your wellness, one choice at a time.</Text>
+      <BotanicalWaves dark={darkMode} />
     </ScrollView>
   );
 }
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F3F7F3' }, page: { flexGrow: 1, alignItems: 'center', paddingHorizontal: 26, paddingTop: 28, paddingBottom: 56 },
+  screen: { flex: 1, backgroundColor: '#F3FBF5' }, page: { flexGrow: 1, alignItems: 'center', paddingHorizontal: 26, paddingTop: 28, paddingBottom: 56 },
   pageMobile: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 32 },
-  headerPanel: { width: '100%', maxWidth: 780, backgroundColor: '#FFFFFF', borderRadius: 24, borderWidth: 1, borderColor: '#DFEAE2', paddingHorizontal: 30, paddingTop: 14, paddingBottom: 14, marginBottom: 18, shadowColor: '#1A4530', shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 9 }, elevation: 4 },
+  headerPanel: { width: '100%', maxWidth: 780, backgroundColor: 'transparent', borderRadius: 20, borderWidth: 1, borderColor: '#C8DED0', paddingHorizontal: 18, paddingTop: 12, paddingBottom: 12, marginBottom: 18 },
   headerPanelMobile: { paddingHorizontal: 14, paddingTop: 8, paddingBottom: 10, borderRadius: 19, marginBottom: 14 },
   top: { width: '100%', maxWidth: 780, minHeight: 86, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 },
   topMobile: { minHeight: 78, flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 6 },
@@ -200,39 +226,43 @@ const styles = StyleSheet.create({
   logoBadge: { width: 180, height: 82, alignItems: 'center', justifyContent: 'center' },
   headerLogo: { width: 168, height: 72 },
   greeting: { width: '100%', maxWidth: 780, color: '#557364', textAlign: 'left', marginTop: 0, marginBottom: 0, fontSize: 14, fontWeight: '600' },
-  themeButton: { width: 66, height: 66, borderRadius: 12, backgroundColor: '#E5F1E8', alignItems: 'center', justifyContent: 'center' },
-  themeButtonDark: { backgroundColor: '#F4F8F4' },
-  themeIcon: { fontSize: 27, color: '#246B4A', lineHeight: 32 },
-  themeIconDark: { color: '#246B4A' },
-  themeLabel: { fontSize: 11, fontWeight: '700', color: '#246B4A' },
-  themeLabelDark: { color: '#246B4A' },
+  themeButton: { width: 72, height: 38, borderRadius: 22, borderWidth: 1.5, borderColor: '#79C96E', backgroundColor: '#F9FFF8', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', paddingHorizontal: 3 },
+  themeButtonCompact: { width: 52, height: 28, borderRadius: 16, borderWidth: 1, paddingHorizontal: 2 },
+  themeButtonDark: { backgroundColor: '#123D35', borderColor: '#4BAA95', justifyContent: 'flex-start' },
+  themeThumb: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  themeThumbCompact: { width: 22, height: 22, borderRadius: 11 },
+  themeThumbLight: { backgroundColor: '#A8EA8D' },
+  themeThumbDark: { backgroundColor: '#2C7667' },
+  themeIcon: { fontSize: 21, lineHeight: 26, color: '#174A30', textAlign: 'center' },
+  themeIconCompact: { fontSize: 15, lineHeight: 19 },
+  themeIconDark: { color: '#FFFFFF' },
   logoutButtonDark: { backgroundColor: '#F4F8F4' },
   logoutDoorDark: { borderColor: '#246B4A' },
   logoutArrowDark: { color: '#246B4A' },
   logoutLabelDark: { color: '#246B4A' },
-  logoutButton: { width: 66, height: 66, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: '#246B4A' },
+  logoutButton: { width: 66, height: 66, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: '#006746' },
   logoutDoor: { position: 'absolute', left: 22, top: 9, width: 16, height: 22, borderWidth: 2, borderRightWidth: 0, borderColor: '#FFFFFF', borderTopLeftRadius: 3, borderBottomLeftRadius: 3 },
   logoutArrow: { position: 'absolute', left: 29, top: 5, fontSize: 26, lineHeight: 29, color: '#FFFFFF', fontWeight: '700' },
   logoutLabel: { position: 'absolute', bottom: 8, color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
-  card: { width: '100%', maxWidth: 780, padding: 34, backgroundColor: '#FFFFFF', borderRadius: 24, borderWidth: 1, borderColor: '#DFEAE2', shadowColor: '#1A4530', shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 9 }, elevation: 4 },
+  card: { width: '100%', maxWidth: 780, padding: 34, backgroundColor: '#FFFFFF', borderRadius: 30, borderWidth: 1, borderColor: '#E0EFE4', shadowColor: '#1A4530', shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 9 }, elevation: 4 },
   cardMobile: { padding: 20, borderRadius: 19 },
   stepPills: { flexDirection: 'row', gap: 7, marginBottom: 17 },
-  stepPill: { flex: 1, minHeight: 34, borderRadius: 10, backgroundColor: '#F1F5F1', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
-  stepPillActive: { backgroundColor: '#246B4A' },
+  stepPill: { flex: 1, minHeight: 34, borderRadius: 10, backgroundColor: '#EAF5EB', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  stepPillActive: { backgroundColor: '#006746' },
   stepPillDone: { backgroundColor: '#E4F1E8' },
   stepPillText: { color: '#718277', fontSize: 11, fontWeight: '700', textAlign: 'center' },
   stepPillTextActive: { color: '#FFFFFF' },
   titleMobile: { fontSize: 25 },
   eyebrow: { color: '#246B4A', fontSize: 11, fontWeight: '800', letterSpacing: 1.2 }, title: { fontSize: 27, fontWeight: '800', color: '#1C3327', marginTop: 9 },
   description: { color: '#697B70', marginTop: 8, lineHeight: 21, marginBottom: 20 },
-  progressTrack: { height: 7, borderRadius: 7, backgroundColor: '#E8F0EA', marginBottom: 25, overflow: 'hidden' }, progressFill: { height: '100%', backgroundColor: '#246B4A', borderRadius: 7 },
+  progressTrack: { height: 7, borderRadius: 7, backgroundColor: '#E8F0EA', marginBottom: 25, overflow: 'hidden' }, progressFill: { height: '100%', backgroundColor: '#006746', borderRadius: 7 },
   section: { fontSize: 17, fontWeight: '700', color: '#1C3327', marginBottom: 15 }, field: { marginBottom: 20 },
-  label: { color: '#304438', fontSize: 14, fontWeight: '700', marginBottom: 9 }, input: { minHeight: 49, borderWidth: 1, borderColor: '#DCE5DE', borderRadius: 10, paddingHorizontal: 13, paddingVertical: 10, backgroundColor: '#FAFCFA', color: '#20382A', fontSize: 15 },
+  label: { color: '#304438', fontSize: 14, fontWeight: '700', marginBottom: 9 }, input: { minHeight: 49, borderWidth: 1, borderColor: '#DCE5DE', borderRadius: 10, paddingHorizontal: 13, paddingVertical: 10, backgroundColor: '#FFFFFF', color: '#20382A', fontSize: 15 },
   multiline: { minHeight: 85, textAlignVertical: 'top' }, choices: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
-  choice: { borderWidth: 1, borderColor: '#DCE5DE', paddingVertical: 13, paddingHorizontal: 15, borderRadius: 12, backgroundColor: '#FAFCFA' },
+  choice: { borderWidth: 1, borderColor: '#DCE5DE', paddingVertical: 13, paddingHorizontal: 15, borderRadius: 12, backgroundColor: '#FFFFFF' },
   choiceSelected: { backgroundColor: '#E7F3EB', borderColor: '#246B4A' }, choiceText: { color: '#3B5143' }, choiceTextSelected: { color: '#246B4A', fontWeight: '700' },
   hint: { color: '#7B8980', fontSize: 12, lineHeight: 19, marginBottom: 15 }, error: { color: '#A42C2C', marginBottom: 12 },
-  actions: { flexDirection: 'row', gap: 10, marginTop: 18 }, primary: { minHeight: 49, borderRadius: 11, backgroundColor: '#246B4A', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 18 }, primaryText: { color: '#FFFFFF', fontWeight: '800' },
+  actions: { flexDirection: 'row', gap: 10, marginTop: 18 }, primary: { minHeight: 49, borderRadius: 11, backgroundColor: '#006746', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 18 }, primaryText: { color: '#FFFFFF', fontWeight: '800' },
   secondary: { minHeight: 49, borderRadius: 11, borderWidth: 1, borderColor: '#CADACF', paddingHorizontal: 23, justifyContent: 'center' }, secondaryText: { color: '#246B4A', fontWeight: '700' },
   reviewRow: { borderBottomWidth: 1, borderBottomColor: '#EFF3EF', paddingVertical: 11, flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
   reviewLabel: { color: '#697B70', flex: 1 }, reviewValue: { color: '#1C3327', fontWeight: '600', flex: 1, textAlign: 'right' },

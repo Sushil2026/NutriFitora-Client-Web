@@ -12,11 +12,35 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
 import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
 import AssessmentScreen from './src/screens/AssessmentScreen';
+
+
+// Decorative shapes use native Views; no external image or animation package.
+function BotanicalAccent({ dark = false, bottom = false }: { dark?: boolean; bottom?: boolean }) {
+  const leafColor = dark ? '#235F50' : '#A9D98A';
+  return (
+    <View pointerEvents="none" style={{ position: 'absolute', ...(bottom ? { bottom: -18, right: -22 } : { top: -20, left: -22 }), width: 145, height: 150, opacity: dark ? 0.5 : 0.72 }}>
+      <View style={{ position: 'absolute', left: 70, top: 20, width: 3, height: 124, backgroundColor: dark ? '#3E9377' : '#85BD6D', transform: [{ rotate: '35deg' }] }} />
+      {[[25,28,-32],[65,20,35],[24,76,-40],[75,70,40],[58,108,25]].map(([x,y,r], i) => (
+        <View key={i} style={{ position: 'absolute', left: x, top: y, width: 51, height: 24, borderTopLeftRadius: 48, borderBottomRightRadius: 48, backgroundColor: leafColor, transform: [{ rotate: `${r}deg` }] }} />
+      ))}
+    </View>
+  );
+}
+function BotanicalWaves({ dark = false }: { dark?: boolean }) {
+  return (
+    <View pointerEvents="none" style={{ height: 98, overflow: 'hidden', width: '100%', position: 'relative', marginTop: 18 }}>
+      <View style={{ position: 'absolute', left: -45, right: -45, top: 26, height: 170, borderTopLeftRadius: 170, borderTopRightRadius: 220, backgroundColor: dark ? '#174F47' : '#D9F2D1', transform: [{ rotate: '-6deg' }] }} />
+      <View style={{ position: 'absolute', left: -40, right: -45, top: 56, height: 150, borderTopLeftRadius: 190, borderTopRightRadius: 170, backgroundColor: dark ? '#227568' : '#AFE4A0', transform: [{ rotate: '5deg' }] }} />
+      <BotanicalAccent dark={dark} bottom />
+    </View>
+  );
+}
 
 // Expo reads EXPO_PUBLIC_* values from frontend/.env at startup.
 // Use the deployed API by default, including when testing locally in a browser.
@@ -35,6 +59,8 @@ type ApiResponse = {
 type Mode = 'login' | 'register';
 
 export default function App() {
+  const { width: viewportWidth } = useWindowDimensions();
+  const compactToggle = viewportWidth < 600;
   useEffect(() => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       document.title = 'Nutri Fitora';
@@ -188,17 +214,25 @@ export default function App() {
     return (
       <SafeAreaView style={themed('safe', styles.safe)}>
         <StatusBar style={darkMode ? "light" : "dark"} />
-        <TouchableOpacity onPress={toggleTheme} accessibilityLabel="Toggle light and dark mode" style={{ alignSelf: 'flex-end', padding: 12 }}><Text style={{ color: darkMode ? '#FFFFFF' : '#246B4A' }}>{darkMode ? '☀ Light' : '☾ Dark'}</Text></TouchableOpacity>
-        <View style={themed('secondaryPageLogo', styles.secondaryPageLogo)}>
-          <Image
-            source={require('./assets/NutriFitora_logo.png')}
-            style={themed('secondaryBrandLogo', styles.secondaryBrandLogo)}
-            resizeMode="contain"
-            accessibilityLabel="Nutri Fitora logo"
-          />
+        <View style={[styles.privacyTopPanel, darkMode && styles.privacyTopPanelDark]}>
+          <View>
+            <Image source={darkMode ? require('./assets/NutriFitora_logo_white.png') : require('./assets/NutriFitora_logo.png')} style={styles.secondaryBrandLogo} resizeMode="contain" accessibilityLabel="Nutri Fitora logo" />
+          </View>
+          <TouchableOpacity
+              onPress={toggleTheme}
+              accessibilityRole="switch"
+              accessibilityState={{ checked: darkMode }}
+              accessibilityLabel={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              style={[styles.loginThemeButton, compactToggle && styles.loginThemeButtonCompact, darkMode ? styles.loginThemeButtonDark : styles.loginThemeButtonLight]}
+            >
+              <View style={[styles.loginThemeThumb, compactToggle && styles.loginThemeThumbCompact, darkMode ? styles.loginThemeThumbDark : styles.loginThemeThumbLight]}>
+                <Text style={[styles.loginThemeIcon, compactToggle && styles.loginThemeIconCompact, darkMode && styles.loginThemeIconDark]}>{darkMode ? '☾' : '☀'}</Text>
+              </View>
+            </TouchableOpacity>
         </View>
         <View style={themed('privacyContent', styles.privacyContent)}>
           <PrivacyPolicyScreen
+            darkMode={darkMode}
             onBack={() => setShowPrivacyPolicy(false)}
           />
         </View>
@@ -217,23 +251,29 @@ export default function App() {
         keyboardShouldPersistTaps="always"
       >
         <View style={themed('shell', styles.shell)}>
+          <BotanicalAccent dark={darkMode} />
 
           {/* Matching assessment header: logo left, theme toggle right */}
+          <View style={[styles.authHeaderPanel, darkMode && styles.authHeaderPanelDark]}>
           <View style={themed('loginHeader', styles.loginHeader)}>
-            <Image
-              source={require('./assets/NutriFitora_logo.png')}
-              style={styles.brandLogo}
-              resizeMode="contain"
-              accessibilityLabel="Nutri Fitora logo"
-            />
+            <View>
+              <Image
+                source={darkMode ? require('./assets/NutriFitora_logo_white.png') : require('./assets/NutriFitora_logo.png')}
+                style={styles.brandLogo}
+                resizeMode="contain"
+                accessibilityLabel="Nutri Fitora logo"
+              />
+            </View>
             <TouchableOpacity
               onPress={toggleTheme}
-              accessibilityRole="button"
+              accessibilityRole="switch"
+              accessibilityState={{ checked: darkMode }}
               accessibilityLabel={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-              style={[styles.loginThemeButton, darkMode ? styles.loginThemeButtonDark : styles.loginThemeButtonLight]}
+              style={[styles.loginThemeButton, compactToggle && styles.loginThemeButtonCompact, darkMode ? styles.loginThemeButtonDark : styles.loginThemeButtonLight]}
             >
-              <Text style={[styles.loginThemeIcon, { color: '#246B4A' }]}>{darkMode ? '☀' : '☾'}</Text>
-              <Text style={styles.loginThemeText}>{darkMode ? 'Light' : 'Dark'}</Text>
+              <View style={[styles.loginThemeThumb, compactToggle && styles.loginThemeThumbCompact, darkMode ? styles.loginThemeThumbDark : styles.loginThemeThumbLight]}>
+                <Text style={[styles.loginThemeIcon, compactToggle && styles.loginThemeIconCompact, darkMode && styles.loginThemeIconDark]}>{darkMode ? '☾' : '☀'}</Text>
+              </View>
             </TouchableOpacity>
           </View>
 
@@ -242,6 +282,7 @@ export default function App() {
               <Text style={themed('taglineAccent', styles.taglineAccent)}>Small steps.</Text>
               {'\n'}Healthier you.
             </Text>
+          </View>
           </View>
 
           <View style={themed('card', styles.card)}>
@@ -427,6 +468,7 @@ export default function App() {
 
           </View>
 
+          <BotanicalWaves dark={darkMode} />
           <Text style={themed('footer', styles.footer)}>
             Your wellness, one choice at a time.
           </Text>
@@ -438,17 +480,21 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  privacyTopPanel: { width: '94%', maxWidth: 780, alignSelf: 'center', marginTop: 16, marginBottom: 12, paddingHorizontal: 16, paddingVertical: 12, borderWidth: 1, borderColor: '#C8DED0', borderRadius: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  privacyTopPanelDark: { borderColor: '#45604B' },
+  authHeaderPanel: { width: '100%', borderWidth: 1, borderColor: '#C8DED0', borderRadius: 20, backgroundColor: 'transparent', paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12, marginBottom: 18 },
+  authHeaderPanelDark: { borderColor: '#45604B' },
   secondaryPageLogo: {
     alignItems: 'center',
     paddingTop: 12,
     paddingBottom: 8,
-    backgroundColor: '#F3F7F3',
+    backgroundColor: '#F3FBF5',
   },
-  secondaryBrandLogo: { width: 170, height: 72, borderRadius: 15, backgroundColor: "#FFFFFF" },
+  secondaryBrandLogo: { width: 170, height: 72 },
   privacyContent: { flex: 1 },
   safe: {
     flex: 1,
-    backgroundColor: '#F3F7F3',
+    backgroundColor: '#F3FBF5',
   },
 
   scroll: {
@@ -459,12 +505,15 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 22,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 0,
   },
 
   shell: {
     width: '100%',
     maxWidth: 460,
+    position: 'relative',
     alignItems: 'center',
   },
 
@@ -476,17 +525,21 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     paddingHorizontal: 2,
   },
+  // Image-inspired compact sliding sun/moon switch
   loginThemeButton: {
-    width: 66,
-    height: 66,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 72, height: 38, borderRadius: 22, borderWidth: 1.5,
+    flexDirection: 'row', alignItems: 'center', paddingHorizontal: 3,
   },
-  loginThemeButtonLight: { backgroundColor: '#E5F1E8' },
-  loginThemeButtonDark: { backgroundColor: '#F4F8F4' },
-  loginThemeIcon: { fontSize: 23, lineHeight: 27, fontWeight: '700' },
-  loginThemeText: { fontSize: 11, fontWeight: '700', color: '#246B4A' },
+  loginThemeButtonCompact: { width: 52, height: 28, borderRadius: 16, borderWidth: 1, paddingHorizontal: 2 },
+  loginThemeButtonLight: { backgroundColor: '#F9FFF8', borderColor: '#79C96E', justifyContent: 'flex-end' },
+  loginThemeButtonDark: { backgroundColor: '#123D35', borderColor: '#4BAA95', justifyContent: 'flex-start' },
+  loginThemeThumb: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  loginThemeThumbCompact: { width: 22, height: 22, borderRadius: 11 },
+  loginThemeThumbLight: { backgroundColor: '#A8EA8D' },
+  loginThemeThumbDark: { backgroundColor: '#2C7667' },
+  loginThemeIcon: { fontSize: 21, lineHeight: 26, color: '#174A30', textAlign: 'center' },
+  loginThemeIconCompact: { fontSize: 15, lineHeight: 19 },
+  loginThemeIconDark: { color: '#FFFFFF' },
   logoContainer: {
     width: '100%',
     alignItems: 'center',
@@ -494,19 +547,30 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
+  logoBorderBox: {
+    borderWidth: 1,
+    borderColor: '#C8DED0',
+    borderRadius: 16,
+    backgroundColor: 'transparent',
+    padding: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 1,
+  },
   brandLogo: {
     width: 180,
     height: 80,
-    borderRadius: 18,
-    backgroundColor: "#FFFFFF",
+    // The original PNG already has a dark background.
+    // Avoid a white backing that shows as an unwanted rectangle in dark mode.
+    borderRadius: 0,
   },
 
-  taglineRow: { width: '100%', alignItems: 'flex-start', marginBottom: 22, paddingLeft: 4 },
+  taglineRow: { width: '100%', alignItems: 'flex-start', marginBottom: 0, paddingLeft: 2 },
   tagline: {
     color: '#1C4933',
     textAlign: 'left',
-    fontSize: 27,
-    lineHeight: 34,
+    fontSize: 29,
+    lineHeight: 36,
     fontWeight: '800',
     letterSpacing: -0.6,
   },
@@ -520,15 +584,15 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     backgroundColor: '#FFFFFF',
-    borderRadius: 22,
+    borderRadius: 30,
     padding: 24,
     borderWidth: 1,
-    borderColor: '#E6EDE7',
+    borderColor: '#E2F0E6',
   },
 
   tabs: {
     flexDirection: 'row',
-    backgroundColor: '#F1F5F1',
+    backgroundColor: '#EAF5EB',
     borderRadius: 12,
     padding: 4,
     marginBottom: 24,
@@ -582,7 +646,7 @@ const styles = StyleSheet.create({
     borderRadius: 11,
     paddingHorizontal: 14,
     color: '#20382A',
-    backgroundColor: '#FCFDFC',
+    backgroundColor: '#FFFFFF',
   },
 
   forgot: {
@@ -607,7 +671,7 @@ const styles = StyleSheet.create({
 
   button: {
     height: 51,
-    backgroundColor: '#246B4A',
+    backgroundColor: '#006746',
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',

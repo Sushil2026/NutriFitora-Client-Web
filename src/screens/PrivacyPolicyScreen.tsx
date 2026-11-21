@@ -1,202 +1,57 @@
-
-import React from "react";
-import {
-  ScrollView,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Linking,
-} from "react-native";
+import React from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 type Props = {
   onBack: () => void;
+  darkMode?: boolean;
 };
 
-const sections = [
-  {
-    title: "1. Information We Collect",
-    content:
-      "We collect information you provide when registering, " +
-      "such as your name, email address and phone number. " +
-      "We may also collect nutrition-related information " +
-      "that you choose to share when using our services.",
-  },
-  {
-    title: "2. How We Use Information",
-    content:
-      "We use your information to manage your account, " +
-      "provide nutrition services, communicate with you, " +
-      "and maintain the security of the application.",
-  },
-  {
-    title: "3. Data Security",
-    content:
-      "We implement technical and organizational safeguards " +
-      "designed to protect personal information. " +
-      "No system can guarantee absolute security.",
-  },
-  {
-    title: "4. Data Sharing",
-    content:
-      "Information may be shared with authorized service " +
-      "providers and nutrition professionals when necessary " +
-      "to deliver the services you request, subject to " +
-      "applicable privacy requirements.",
-  },
-  {
-    title: "5. Your Rights",
-    content:
-      "You may contact us to request access to, correction " +
-      "of, or deletion of your personal information, " +
-      "subject to applicable law and retention obligations.",
-  },
-  {
-    title: "6. Changes to This Policy",
-    content:
-      "We may update this policy as our services change. " +
-      "The latest version will be available in the app.",
-  },
-];
+/**
+ * Privacy Policy content placeholder.
+ * Replace the sections below with your approved, actual Privacy Policy before publication.
+ * This screen does not make claims about unverified data handling practices.
+ */
+export default function PrivacyPolicyScreen({ onBack, darkMode = false }: Props) {
+  const colors = darkMode
+    ? { background: '#101A16', card: '#1B2A23', border: '#45604B', text: '#F1F7F2', muted: '#B5C9BA', accent: '#A6E4BC' }
+    : { background: '#F3FBF5', card: '#FFFFFF', border: '#C8DED0', text: '#1C3327', muted: '#697B70', accent: '#006746' };
 
-export default function PrivacyPolicyScreen({
-  onBack,
-}: Props) {
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-    >
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onBack}>
-          <Text style={styles.back}>← Back</Text>
+    <ScrollView style={{ flex: 1, backgroundColor: colors.background }}
+      contentContainerStyle={styles.page}>
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <TouchableOpacity onPress={onBack} accessibilityRole="button" style={styles.backButton}>
+          <Text style={[styles.backText, { color: colors.accent }]}>← Back</Text>
         </TouchableOpacity>
-
-        <Text style={styles.heading}>
-          Privacy Policy
+        <Text style={[styles.heading, { color: colors.text }]}>Privacy Policy</Text>
+        <Text style={[styles.intro, { color: colors.muted }]}>
+          Please insert your approved NutriFitora Privacy Policy here before publishing this page.
         </Text>
-
-        <Text style={styles.subtitle}>
-          Your privacy matters to NutriFitora.
-        </Text>
-
-        <Text style={styles.date}>
-          Last updated: November 19, 2026
-        </Text>
-      </View>
-
-      <View style={styles.body}>
-        <Text style={styles.intro}>
-          This Privacy Policy explains how NutriFitora
-          handles personal information when you use
-          our application.
-        </Text>
-
-        {sections.map((section) => (
-          <View
-            key={section.title}
-            style={styles.card}
-          >
-            <Text style={styles.title}>
-              {section.title}
-            </Text>
-
-            <Text style={styles.paragraph}>
-              {section.content}
-            </Text>
+        {[
+          ['Information we collect', 'Add your verified description of customer information collected.'],
+          ['How information is used', 'Explain your actual purposes for using customer information.'],
+          ['Storage and security', 'Describe the measures and providers you actually use.'],
+          ['Sharing and retention', 'Describe your actual sharing practices and retention periods.'],
+          ['Your choices and contact', 'Add the correct contact method and applicable privacy rights.'],
+        ].map(([heading, content]) => (
+          <View key={heading} style={styles.section}>
+            <Text style={[styles.sectionHeading, { color: colors.text }]}>{heading}</Text>
+            <Text style={[styles.body, { color: colors.muted }]}>{content}</Text>
           </View>
         ))}
-
-        <View style={styles.card}>
-          <Text style={styles.title}>
-            7. Contact Us
-          </Text>
-
-          <Text style={styles.paragraph}>
-            For privacy questions, contact:
-          </Text>
-
-          <TouchableOpacity
-            onPress={() =>
-              Linking.openURL(
-                "mailto:YOUR_PRIVACY_EMAIL"
-              )
-            }
-          >
-            <Text style={styles.email}>
-              Contact Privacy Support
-            </Text>
-          </TouchableOpacity>
-        </View>
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F8F6",
-  },
-  content: {
-    paddingBottom: 35,
-  },
-  header: {
-    backgroundColor: "#167B65",
-    paddingHorizontal: 22,
-    paddingTop: 45,
-    paddingBottom: 30,
-  },
-  back: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    marginBottom: 25,
-  },
-  heading: {
-    color: "#FFFFFF",
-    fontSize: 30,
-    fontWeight: "bold",
-  },
-  subtitle: {
-    color: "#E2F4EB",
-    fontSize: 15,
-    marginTop: 10,
-  },
-  date: {
-    color: "#D1E8DD",
-    fontSize: 12,
-    marginTop: 15,
-  },
-  body: {
-    padding: 16,
-  },
-  intro: {
-    fontSize: 15,
-    color: "#34483E",
-    lineHeight: 24,
-    marginBottom: 18,
-  },
-  card: {
-    backgroundColor: "#FFFFFF",
-    padding: 18,
-    borderRadius: 12,
-    marginBottom: 14,
-    elevation: 2,
-  },
-  title: {
-    fontSize: 17,
-    fontWeight: "bold",
-    color: "#167B65",
-    marginBottom: 9,
-  },
-  paragraph: {
-    fontSize: 14,
-    color: "#444444",
-    lineHeight: 23,
-  },
-  email: {
-    color: "#167B65",
-    fontWeight: "bold",
-    marginTop: 10,
-  },
+  page: { flexGrow: 1, alignItems: 'center', paddingHorizontal: 16, paddingBottom: 40 },
+  card: { width: '100%', maxWidth: 780, borderWidth: 1, borderRadius: 24, padding: 24 },
+  backButton: { alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center', marginBottom: 10 },
+  backText: { fontWeight: '700', fontSize: 15 },
+  heading: { fontSize: 26, fontWeight: '800', marginBottom: 12 },
+  intro: { fontSize: 15, lineHeight: 23 },
+  section: { marginTop: 24 },
+  sectionHeading: { fontSize: 17, fontWeight: '700', marginBottom: 7 },
+  body: { fontSize: 14, lineHeight: 22 },
 });
