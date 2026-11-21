@@ -62,6 +62,7 @@ type Mode = 'login' | 'register';
 export default function App() {
   const { width: viewportWidth } = useWindowDimensions();
   const compactToggle = viewportWidth < 600;
+  const isMobile = viewportWidth < 600;
   useEffect(() => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       document.title = 'Nutri Fitora';
@@ -204,15 +205,8 @@ export default function App() {
           darkMode={darkMode}
           onToggleTheme={toggleTheme}
           onBack={() => setShowPrograms(false)}
+          onLogout={() => { setLoggedIn(false); setShowPrograms(false); setCustomerName(''); setPassword(''); setMode('login'); }}
           customerName={customerName}
-          onLogout={() => {
-            setLoggedIn(false);
-            setShowPrograms(false);
-            setCustomerName('');
-            setPassword('');
-            setMessage('');
-            setMode('login');
-          }}
         />
       </SafeAreaView>
     );
@@ -234,33 +228,12 @@ export default function App() {
     );
   }
 
-  // Privacy Policy screen
+  // Privacy Policy: the screen owns the same full-width branded header as the other pages.
   if (showPrivacyPolicy) {
     return (
       <SafeAreaView style={themed('safe', styles.safe)}>
-        <StatusBar style={darkMode ? "light" : "dark"} />
-        <View style={[styles.privacyTopPanel, darkMode && styles.privacyTopPanelDark]}>
-          <View>
-            <Image source={darkMode ? require('./assets/NutriFitora_logo_white.png') : require('./assets/NutriFitora_logo.png')} style={styles.secondaryBrandLogo} resizeMode="contain" accessibilityLabel="Nutri Fitora logo" />
-          </View>
-          <TouchableOpacity
-              onPress={toggleTheme}
-              accessibilityRole="switch"
-              accessibilityState={{ checked: darkMode }}
-              accessibilityLabel={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-              style={[styles.loginThemeButton, compactToggle && styles.loginThemeButtonCompact, darkMode ? styles.loginThemeButtonDark : styles.loginThemeButtonLight]}
-            >
-              <View style={[styles.loginThemeThumb, compactToggle && styles.loginThemeThumbCompact, darkMode ? styles.loginThemeThumbDark : styles.loginThemeThumbLight]}>
-                <Text style={[styles.loginThemeIcon, compactToggle && styles.loginThemeIconCompact, darkMode && styles.loginThemeIconDark]}>{darkMode ? '☾' : '☀'}</Text>
-              </View>
-            </TouchableOpacity>
-        </View>
-        <View style={themed('privacyContent', styles.privacyContent)}>
-          <PrivacyPolicyScreen
-            darkMode={darkMode}
-            onBack={() => setShowPrivacyPolicy(false)}
-          />
-        </View>
+        <StatusBar style={darkMode ? 'light' : 'dark'} />
+        <PrivacyPolicyScreen darkMode={darkMode} onToggleTheme={toggleTheme} onBack={() => setShowPrivacyPolicy(false)} />
       </SafeAreaView>
     );
   }
@@ -272,14 +245,14 @@ export default function App() {
 
       <ScrollView
         style={themed('scroll', styles.scroll)}
-        contentContainerStyle={themed('page', styles.page)}
+        contentContainerStyle={[themed('page', styles.page), isMobile && styles.pageMobile]}
         keyboardShouldPersistTaps="always"
       >
         <View style={themed('shell', styles.shell)}>
           <BotanicalAccent dark={darkMode} />
 
           {/* Matching assessment header: logo left, theme toggle right */}
-          <View style={[styles.authHeaderPanel, darkMode && styles.authHeaderPanelDark]}>
+          <View style={[styles.authHeaderPanel, isMobile && styles.authHeaderPanelMobile, darkMode && styles.authHeaderPanelDark]}>
           <View style={themed('loginHeader', styles.loginHeader)}>
             <View>
               <Image
@@ -310,7 +283,8 @@ export default function App() {
           </View>
           </View>
 
-          <View style={themed('card', styles.card)}>
+          <View style={[themed('card', styles.card), isMobile && styles.cardMobile]}>
+            <View style={styles.formContent}>
 
             {/* Login / Register tabs */}
             <View style={themed('tabs', styles.tabs)}>
@@ -319,6 +293,8 @@ export default function App() {
                   themed('tab', styles.tab),
                   mode === 'login' && themed('selected', styles.selected),
                 ]}
+                accessibilityRole="button"
+                accessibilityState={{ selected: mode === 'login' }}
                 onPress={() => {
                   setMode('login');
                   setMessage('');
@@ -339,6 +315,8 @@ export default function App() {
                   themed('tab', styles.tab),
                   mode === 'register' && themed('selected', styles.selected),
                 ]}
+                accessibilityRole="button"
+                accessibilityState={{ selected: mode === 'register' }}
                 onPress={() => {
                   setMode('register');
                   setMessage('');
@@ -355,6 +333,7 @@ export default function App() {
               </TouchableOpacity>
             </View>
 
+            <Text style={themed('eyebrow', styles.eyebrow)}>NUTRIFITORA CUSTOMER PORTAL</Text>
             <Text style={themed('heading', styles.heading)}>
               {mode === 'login'
                 ? 'Welcome back'
@@ -491,6 +470,7 @@ export default function App() {
               </TouchableOpacity>
             </View>
 
+            </View>
           </View>
 
           <BotanicalWaves dark={darkMode} />
@@ -507,7 +487,12 @@ export default function App() {
 const styles = StyleSheet.create({
   privacyTopPanel: { width: '94%', maxWidth: 780, alignSelf: 'center', marginTop: 16, marginBottom: 12, paddingHorizontal: 16, paddingVertical: 12, borderWidth: 1, borderColor: '#C8DED0', borderRadius: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   privacyTopPanelDark: { borderColor: '#45604B' },
-  authHeaderPanel: { width: '100%', borderWidth: 1, borderColor: '#C8DED0', borderRadius: 20, backgroundColor: 'transparent', paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12, marginBottom: 18 },
+  authHeaderPanel: { width: '100%', borderWidth: 1, borderColor: '#C8DED0', borderRadius: 20, backgroundColor: 'transparent', paddingHorizontal: 18, paddingTop: 12, paddingBottom: 12, marginBottom: 18 },
+  authHeaderPanelMobile: { paddingHorizontal: 14, paddingTop: 8, paddingBottom: 10, borderRadius: 19, marginBottom: 14 },
+  pageMobile: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 32 },
+  cardMobile: { padding: 20, borderRadius: 19 },
+  formContent: { width: '100%', maxWidth: 560, alignSelf: 'center' },
+  eyebrow: { color: '#246B4A', fontSize: 11, fontWeight: '800', letterSpacing: 1.2, marginBottom: 7 },
   authHeaderPanelDark: { borderColor: '#45604B' },
   secondaryPageLogo: {
     alignItems: 'center',
@@ -530,14 +515,14 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 0,
+    paddingHorizontal: 26,
+    paddingTop: 28,
+    paddingBottom: 56,
   },
 
   shell: {
     width: '100%',
-    maxWidth: 460,
+    maxWidth: 780,
     position: 'relative',
     alignItems: 'center',
   },
@@ -610,9 +595,14 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: '#FFFFFF',
     borderRadius: 30,
-    padding: 24,
+    padding: 34,
     borderWidth: 1,
-    borderColor: '#E2F0E6',
+    borderColor: '#E0EFE4',
+    shadowColor: '#1A4530',
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 9 },
+    elevation: 4,
   },
 
   tabs: {
@@ -751,13 +741,14 @@ const styles = StyleSheet.create({
 const appDarkOverrides: Record<string, object> = {
   safe: { backgroundColor: '#101A16' }, page: { backgroundColor: '#101A16' }, scroll: { backgroundColor: '#101A16' },
   secondaryPageLogo: { backgroundColor: '#101A16' },
-  card: { backgroundColor: '#1B2A23', borderColor: '#34483B' },
+  card: { backgroundColor: '#1B2A23', borderColor: '#34483B', shadowColor: '#000000' },
+  eyebrow: { color: '#8DD5A9' },
   tagline: { color: '#F0F7F1' }, taglineAccent: { color: '#91D9AA' }, tabs: { backgroundColor: '#2A3A30' },
   selected: { backgroundColor: '#365640' }, tabText: { color: '#C0D2C4' },
   selectedText: { color: '#B9F2CB' }, heading: { color: '#F1F7F2' },
   subtitle: { color: '#B5C9BA' }, label: { color: '#DDECE0' },
   input: { backgroundColor: '#22352A', borderColor: '#45604B', color: '#FFFFFF' },
-  forgotText: { color: '#A6E4BC' }, message: { color: '#F4C2A7' },
+  forgotText: { color: '#A6E4BC' }, message: { color: '#F4C2A7', backgroundColor: '#283F32' },
   terms: { color: '#B5C9BA' }, privacyLink: { color: '#A6E4BC' },
   footer: { color: '#A0B7A6' },
 };

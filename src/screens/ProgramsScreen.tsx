@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import NutriPageHeader from './NutriPageHeader';
+import NutriPageFooter from './NutriPageFooter';
 import {
   ActivityIndicator, Image, RefreshControl, ScrollView, StyleSheet,
   Text, TouchableOpacity, View, useWindowDimensions,
@@ -96,45 +98,8 @@ export default function ProgramsScreen({
       contentContainerStyle={[styles.page, { paddingHorizontal: small ? 14 : 24 }]}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load(true)} />}
     >
-      <View style={[styles.container, { maxWidth: 800 }]}>
-        <View style={[styles.headerPanel, { backgroundColor: palette.card, borderColor: palette.border }, small && styles.headerMobile]}>
-          <View style={styles.headerTop}>
-            <View style={styles.logoBadge}>
-              <Image
-                source={darkMode
-                  ? require('../../assets/NutriFitora_logo_white.png')
-                  : require('../../assets/NutriFitora_logo.png')}
-                style={styles.logo}
-                resizeMode="contain"
-              />
-            </View>
-            <View style={styles.headerActions}>
-              <TouchableOpacity
-                onPress={onToggleTheme}
-                disabled={!onToggleTheme}
-                accessibilityRole="switch"
-                accessibilityState={{ checked: darkMode }}
-                accessibilityLabel={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-                style={[styles.themeButton, darkMode && styles.themeButtonDark]}
-              >
-                <View style={[styles.themeThumb, { backgroundColor: darkMode ? '#2C7667' : '#A8EA8D' }]}>
-                  <Text style={[styles.themeIcon, { color: darkMode ? '#FFFFFF' : '#174A30' }]}>{darkMode ? '☾' : '☀'}</Text>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={onLogout} accessibilityRole="button" accessibilityLabel="Sign out"
-                style={[styles.logoutButton, darkMode && styles.logoutButtonDark]}>
-                <View style={[styles.logoutDoor, darkMode && styles.logoutDoorDark]} />
-                <Text style={[styles.logoutArrow, darkMode && styles.logoutArrowDark]}>→</Text>
-                <Text style={[styles.logoutLabel, darkMode && styles.logoutLabelDark]}>Logout</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-          {!!customerName && <Text style={[styles.greeting, { color: palette.muted }]}>Hello, {customerName}!</Text>}
-          <TouchableOpacity onPress={onBack} accessibilityRole="button"
-            style={[styles.navButton, { borderColor: palette.accent }]}>
-            <Text style={[styles.navText, { color: palette.accent }]}>← Assessment</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={[styles.container, { maxWidth: 780 }]}>
+        <NutriPageHeader darkMode={darkMode} onToggleTheme={onToggleTheme} onLogout={onLogout} customerName={customerName} navigationLabel="← Assessment" onNavigate={onBack} />
 
         <View style={[styles.mainPanel, { backgroundColor: palette.card, borderColor: palette.border }, small && styles.mainPanelMobile]}>
           <Text style={[styles.eyebrow, { color: palette.accent }]}>NUTRIFITORA WELLNESS PROGRAMS</Text>
@@ -156,7 +121,7 @@ export default function ProgramsScreen({
 
         {!loading && programs.map(program => {
           const open = expandedId === program.id;
-          const hasPrice = program.priceInr !== null;
+          const hasPrice = typeof program.priceInr === 'number' && Number.isFinite(program.priceInr);
           const inclusions = getProgramIncludes(program.includes);
 
           return (
@@ -239,15 +204,15 @@ export default function ProgramsScreen({
           );
         })}
         </View>
-        <View style={{ height: 35 }} />
+        <NutriPageFooter darkMode={darkMode} />
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  page: { flexGrow: 1, alignItems: 'center', paddingTop: 28 },
-  container: { width: '100%' },
+  page: { flexGrow: 1, alignItems: 'center', paddingTop: 28, paddingBottom: 56 },
+  container: { width: '100%', maxWidth: 780, alignSelf: 'center' },
   headerPanel: { width: '100%', borderWidth: 1, borderRadius: 20, paddingHorizontal: 18, paddingTop: 12, paddingBottom: 12, marginBottom: 18 },
   headerMobile: { paddingHorizontal: 14, paddingTop: 8, paddingBottom: 10 },
   headerTop: { width: '100%', minHeight: 86, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
@@ -268,7 +233,7 @@ const styles = StyleSheet.create({
   logoutArrowDark: { color: '#246B4A' },
   logoutLabel: { position: 'absolute', bottom: 8, color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
   logoutLabelDark: { color: '#246B4A' },
-  mainPanel: { width: '100%', padding: 34, borderRadius: 30, borderWidth: 1 },
+  mainPanel: { width: '100%', padding: 34, borderRadius: 30, borderWidth: 1, shadowColor: '#1A4530', shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 9 }, elevation: 4 },
   mainPanelMobile: { padding: 20, borderRadius: 19 },
   eyebrow: { fontSize: 11, fontWeight: '800', letterSpacing: 1.2, marginBottom: 8 },
   top: { width: '100%', minHeight: 90, flexDirection: 'row', alignItems: 'center',

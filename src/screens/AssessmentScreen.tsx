@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import NutriPageHeader from './NutriPageHeader';
+import NutriPageFooter from './NutriPageFooter';
 import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 
 
@@ -140,28 +142,7 @@ export default function AssessmentScreen({ customerName, onLogout, darkMode = fa
   ];
   return (
     <ScrollView style={themed('screen', styles.screen)} contentContainerStyle={[themed('page', styles.page), isMobile && themed('pageMobile', styles.pageMobile)]} keyboardShouldPersistTaps="handled">
-      <BotanicalAccent dark={darkMode} />
-      <View style={[themed('headerPanel', styles.headerPanel), isMobile && styles.headerPanelMobile]}>
-      <View style={[themed('top', styles.top), isMobile && styles.topMobile]}>
-        <View style={themed('logoBadge', styles.logoBadge)}>
-          <Image source={darkMode ? require('../../assets/NutriFitora_logo_white.png') : require('../../assets/NutriFitora_logo.png')} style={themed('headerLogo', styles.headerLogo)} resizeMode="contain" accessibilityLabel="Nutri Fitora logo" />
-        </View>
-        <View style={[styles.headerActions, isMobile && styles.headerActionsMobile]}>
-          {!!onToggleTheme && <TouchableOpacity onPress={onToggleTheme} accessibilityRole="switch" accessibilityState={{ checked: darkMode }} accessibilityLabel={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} style={[styles.themeButton, isMobile && styles.themeButtonCompact, darkMode && styles.themeButtonDark]}>
-            <View style={[styles.themeThumb, isMobile && styles.themeThumbCompact, darkMode ? styles.themeThumbDark : styles.themeThumbLight]}>
-              <Text style={[styles.themeIcon, isMobile && styles.themeIconCompact, darkMode && styles.themeIconDark]}>{darkMode ? '☾' : '☀'}</Text>
-            </View>
-          </TouchableOpacity>}
-        <TouchableOpacity onPress={onLogout} accessibilityRole="button" accessibilityLabel="Sign out" accessibilityHint="Returns to the login screen" style={[styles.logoutButton, darkMode && styles.logoutButtonDark]}>
-          <View style={[styles.logoutDoor, darkMode && styles.logoutDoorDark]} />
-          <Text style={[styles.logoutArrow, darkMode && styles.logoutArrowDark]}>→</Text>
-          <Text style={[styles.logoutLabel, darkMode && styles.logoutLabelDark]}>Logout</Text>
-        </TouchableOpacity>
-        </View>
-      </View>
-      {!!customerName && <Text style={themed('greeting', styles.greeting)}>Hello, {customerName}!</Text>}
-      {!!onViewPrograms && <TouchableOpacity onPress={onViewPrograms} accessibilityRole="button" style={{ alignSelf: "flex-start", marginTop: 10, paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, borderWidth: 1, borderColor: darkMode ? "#91F1B5" : "#006846" }}><Text style={{ color: darkMode ? "#91F1B5" : "#006846", fontWeight: "700" }}>Explore Programs →</Text></TouchableOpacity>}
-      </View>
+      <NutriPageHeader darkMode={darkMode} onToggleTheme={onToggleTheme} onLogout={onLogout} customerName={customerName} navigationLabel={onViewPrograms ? 'Explore Programs →' : undefined} onNavigate={onViewPrograms} />
       <View style={[themed('card', styles.card), isMobile && themed('cardMobile', styles.cardMobile)]}>
         {complete ? <>
           <Text style={themed('eyebrow', styles.eyebrow)}>ASSESSMENT COMPLETE</Text>
@@ -213,13 +194,12 @@ export default function AssessmentScreen({ customerName, onLogout, darkMode = fa
           </View>
         </>}
       </View>
-      <Text style={themed('footer', styles.footer)}>Your wellness, one choice at a time.</Text>
-      <BotanicalWaves dark={darkMode} />
+      <NutriPageFooter darkMode={darkMode} />
     </ScrollView>
   );
 }
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F3FBF5' }, page: { flexGrow: 1, alignItems: 'center', paddingHorizontal: 26, paddingTop: 28, paddingBottom: 56 },
+  screen: { flex: 1, backgroundColor: '#F3FBF5' }, page: { flexGrow: 1, alignItems: 'center', alignSelf: 'center', width: '100%', maxWidth: 832, paddingHorizontal: 26, paddingTop: 28, paddingBottom: 56 },
   pageMobile: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 32 },
   headerPanel: { width: '100%', maxWidth: 780, backgroundColor: 'transparent', borderRadius: 20, borderWidth: 1, borderColor: '#C8DED0', paddingHorizontal: 18, paddingTop: 12, paddingBottom: 12, marginBottom: 18 },
   headerPanelMobile: { paddingHorizontal: 14, paddingTop: 8, paddingBottom: 10, borderRadius: 19, marginBottom: 14 },
