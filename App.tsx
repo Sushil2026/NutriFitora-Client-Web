@@ -18,6 +18,7 @@ import { StatusBar } from 'expo-status-bar';
 
 import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
 import AssessmentScreen from './src/screens/AssessmentScreen';
+import ProgramsScreen from './src/screens/ProgramsScreen';
 
 
 // Decorative shapes use native Views; no external image or animation package.
@@ -72,6 +73,7 @@ export default function App() {
   const themed = (key: string, style: any) => darkMode ? [style, appDarkOverrides[key]] : style;
   const [mode, setMode] = useState<Mode>('login');
   const [loggedIn, setLoggedIn] = useState(false);
+  const [showPrograms, setShowPrograms] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -194,12 +196,35 @@ export default function App() {
     setShowPrivacyPolicy(true);
   }
 
+  if (loggedIn && showPrograms) {
+    return (
+      <SafeAreaView style={themed('safe', styles.safe)}>
+        <StatusBar style={darkMode ? 'light' : 'dark'} />
+        <ProgramsScreen
+          darkMode={darkMode}
+          onToggleTheme={toggleTheme}
+          onBack={() => setShowPrograms(false)}
+          customerName={customerName}
+          onLogout={() => {
+            setLoggedIn(false);
+            setShowPrograms(false);
+            setCustomerName('');
+            setPassword('');
+            setMessage('');
+            setMode('login');
+          }}
+        />
+      </SafeAreaView>
+    );
+  }
+
   if (loggedIn) {
     return (
       <SafeAreaView style={themed('safe', styles.safe)}>
         <StatusBar style={darkMode ? "light" : "dark"} />
-        <AssessmentScreen customerName={customerName} darkMode={darkMode} onToggleTheme={toggleTheme} onLogout={() => {
+        <AssessmentScreen customerName={customerName} darkMode={darkMode} onToggleTheme={toggleTheme} onViewPrograms={() => setShowPrograms(true)} onLogout={() => {
           setLoggedIn(false);
+          setShowPrograms(false);
           setCustomerName('');
           setPassword('');
           setMessage('');

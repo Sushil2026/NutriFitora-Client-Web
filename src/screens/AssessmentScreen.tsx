@@ -30,7 +30,7 @@ type Answers = {
   meals: string; water: string; sleep: string; allergies: string; notes: string;
 };
 
-type Props = { customerName?: string; onLogout: () => void; darkMode?: boolean; onToggleTheme?: () => void };
+type Props = { customerName?: string; onLogout: () => void; darkMode?: boolean; onToggleTheme?: () => void; onViewPrograms?: () => void };
 const initial: Answers = { age: '', heightCm: '', weightKg: '', goal: '', activity: '', diet: '', meals: '', water: '', sleep: '', allergies: '', notes: '' };
 const goals = ['Improve general health', 'Manage weight', 'Build strength', 'Improve energy', 'Improve eating habits'];
 const activities = ['Mostly sitting', 'Lightly active', 'Moderately active', 'Very active'];
@@ -63,7 +63,7 @@ function validateNumeric(key: NumericKey, value: string): string | null {
   return null;
 }
 
-export default function AssessmentScreen({ customerName, onLogout, darkMode = false, onToggleTheme }: Props) {
+export default function AssessmentScreen({ customerName, onLogout, darkMode = false, onToggleTheme, onViewPrograms }: Props) {
   const themed = (key: string, style: any) => darkMode ? [style, darkOverrides[key]] : style;
   const { width } = useWindowDimensions();
   const isMobile = width < 600;
@@ -160,6 +160,7 @@ export default function AssessmentScreen({ customerName, onLogout, darkMode = fa
         </View>
       </View>
       {!!customerName && <Text style={themed('greeting', styles.greeting)}>Hello, {customerName}!</Text>}
+      {!!onViewPrograms && <TouchableOpacity onPress={onViewPrograms} accessibilityRole="button" style={{ alignSelf: "flex-start", marginTop: 10, paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, borderWidth: 1, borderColor: darkMode ? "#91F1B5" : "#006846" }}><Text style={{ color: darkMode ? "#91F1B5" : "#006846", fontWeight: "700" }}>Explore Programs →</Text></TouchableOpacity>}
       </View>
       <View style={[themed('card', styles.card), isMobile && themed('cardMobile', styles.cardMobile)]}>
         {complete ? <>
@@ -167,6 +168,9 @@ export default function AssessmentScreen({ customerName, onLogout, darkMode = fa
           <Text style={themed('title', styles.title)}>Thank you for sharing!</Text>
           {bmiPanel}
           <Text style={themed('description', styles.description)}>Your assessment is complete for this session. Your answers have not yet been saved to the server. A nutritionist can use this information once assessment storage is connected.</Text>
+          {onViewPrograms && <TouchableOpacity style={themed('primary', styles.primary)} onPress={onViewPrograms}>
+            <Text style={themed('primaryText', styles.primaryText)}>Explore Programs →</Text>
+          </TouchableOpacity>}
           <TouchableOpacity style={themed('primary', styles.primary)} onPress={() => { setComplete(false); setStep(3); }}><Text style={themed('primaryText', styles.primaryText)}>Review answers</Text></TouchableOpacity>
         </> : <>
           <Text style={themed('eyebrow', styles.eyebrow)}>CUSTOMER NUTRITION ASSESSMENT</Text>
