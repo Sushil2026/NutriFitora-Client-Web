@@ -211,7 +211,7 @@ export default function ProgramsScreen({
 }
 
 const styles = StyleSheet.create({
-  page: { flexGrow: 1, alignItems: 'center', paddingTop: 28, paddingBottom: 56 },
+  page: { flexGrow: 1, alignItems: 'center', paddingTop: 16, paddingBottom: 24 },
   container: { width: '100%', maxWidth: 780, alignSelf: 'center' },
   headerPanel: { width: '100%', borderWidth: 1, borderRadius: 20, paddingHorizontal: 18, paddingTop: 12, paddingBottom: 12, marginBottom: 18 },
   headerMobile: { paddingHorizontal: 14, paddingTop: 8, paddingBottom: 10 },
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   logoutArrowDark: { color: '#246B4A' },
   logoutLabel: { position: 'absolute', bottom: 8, color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
   logoutLabelDark: { color: '#246B4A' },
-  mainPanel: { width: '100%', padding: 34, borderRadius: 30, borderWidth: 1, shadowColor: '#1A4530', shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 9 }, elevation: 4 },
+  mainPanel: { width: '100%', padding: 22, borderRadius: 20, borderWidth: 1, shadowColor: '#1A4530', shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 9 }, elevation: 4 },
   mainPanelMobile: { padding: 20, borderRadius: 19 },
   eyebrow: { fontSize: 11, fontWeight: '800', letterSpacing: 1.2, marginBottom: 8 },
   top: { width: '100%', minHeight: 90, flexDirection: 'row', alignItems: 'center',

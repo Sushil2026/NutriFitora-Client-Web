@@ -19,6 +19,9 @@ import { StatusBar } from 'expo-status-bar';
 import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
 import AssessmentScreen from './src/screens/AssessmentScreen';
 import ProgramsScreen from './src/screens/ProgramsScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import DemoWellnessScreen from './src/screens/DemoWellnessScreen';
+import NutriBottomNav, { NutriTab } from './src/screens/NutriBottomNav';
 
 
 // Decorative shapes use native Views; no external image or animation package.
@@ -75,6 +78,7 @@ export default function App() {
   const [mode, setMode] = useState<Mode>('login');
   const [loggedIn, setLoggedIn] = useState(false);
   const [showPrograms, setShowPrograms] = useState(false);
+  const [activeTab, setActiveTab] = useState<NutriTab>('home');
   const [customerName, setCustomerName] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -197,35 +201,20 @@ export default function App() {
     setShowPrivacyPolicy(true);
   }
 
-  if (loggedIn && showPrograms) {
-    return (
-      <SafeAreaView style={themed('safe', styles.safe)}>
-        <StatusBar style={darkMode ? 'light' : 'dark'} />
-        <ProgramsScreen
-          darkMode={darkMode}
-          onToggleTheme={toggleTheme}
-          onBack={() => setShowPrograms(false)}
-          onLogout={() => { setLoggedIn(false); setShowPrograms(false); setCustomerName(''); setPassword(''); setMode('login'); }}
-          customerName={customerName}
-        />
-      </SafeAreaView>
-    );
-  }
-
   if (loggedIn) {
-    return (
-      <SafeAreaView style={themed('safe', styles.safe)}>
-        <StatusBar style={darkMode ? "light" : "dark"} />
-        <AssessmentScreen customerName={customerName} darkMode={darkMode} onToggleTheme={toggleTheme} onViewPrograms={() => setShowPrograms(true)} onLogout={() => {
-          setLoggedIn(false);
-          setShowPrograms(false);
-          setCustomerName('');
-          setPassword('');
-          setMessage('');
-          setMode('login');
-        }} />
-      </SafeAreaView>
-    );
+    const logout = () => { setLoggedIn(false); setShowPrograms(false); setActiveTab('home'); setCustomerName(''); setPassword(''); setMessage(''); setMode('login'); };
+    const navigate = (tab: NutriTab) => { setActiveTab(tab); setShowPrograms(tab === 'programs'); };
+    return <SafeAreaView style={themed('safe', styles.safe)}>
+      <StatusBar style={darkMode ? 'light' : 'dark'} />
+      <View style={{flex:1}}>
+        {(['plan','log','charts','track','team','events'] as NutriTab[]).includes(activeTab) && <DemoWellnessScreen key={activeTab} tab={activeTab as 'plan'|'log'|'charts'|'track'|'team'|'events'} darkMode={darkMode} />}
+        {activeTab === 'home' && <HomeScreen darkMode={darkMode} customerName={customerName} onToggleTheme={toggleTheme} onLogout={logout} onAssessment={()=>navigate('assessment')} onPrograms={()=>navigate('programs')} />}
+        {activeTab === 'assessment' && <AssessmentScreen customerName={customerName} darkMode={darkMode} onToggleTheme={toggleTheme} onViewPrograms={()=>navigate('programs')} onLogout={logout} />}
+        {activeTab === 'programs' && <ProgramsScreen darkMode={darkMode} onToggleTheme={toggleTheme} onBack={()=>navigate('assessment')} onLogout={logout} customerName={customerName} />}
+        {activeTab === 'privacy' && <PrivacyPolicyScreen darkMode={darkMode} onToggleTheme={toggleTheme} onBack={()=>navigate('home')} />}
+      </View>
+      <NutriBottomNav active={activeTab} onChange={navigate} darkMode={darkMode} />
+    </SafeAreaView>;
   }
 
   // Privacy Policy: the screen owns the same full-width branded header as the other pages.

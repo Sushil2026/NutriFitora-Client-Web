@@ -199,7 +199,7 @@ export default function AssessmentScreen({ customerName, onLogout, darkMode = fa
   );
 }
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F3FBF5' }, page: { flexGrow: 1, alignItems: 'center', alignSelf: 'center', width: '100%', maxWidth: 832, paddingHorizontal: 26, paddingTop: 28, paddingBottom: 56 },
+  screen: { flex: 1, backgroundColor: '#F3FBF5' }, page: { flexGrow: 1, alignItems: 'center', alignSelf: 'center', width: '100%', maxWidth: 832, paddingHorizontal: 26, paddingTop: 16, paddingBottom: 24 },
   pageMobile: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 32 },
   headerPanel: { width: '100%', maxWidth: 780, backgroundColor: 'transparent', borderRadius: 20, borderWidth: 1, borderColor: '#C8DED0', paddingHorizontal: 18, paddingTop: 12, paddingBottom: 12, marginBottom: 18 },
   headerPanelMobile: { paddingHorizontal: 14, paddingTop: 8, paddingBottom: 10, borderRadius: 19, marginBottom: 14 },
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
   logoutDoor: { position: 'absolute', left: 22, top: 9, width: 16, height: 22, borderWidth: 2, borderRightWidth: 0, borderColor: '#FFFFFF', borderTopLeftRadius: 3, borderBottomLeftRadius: 3 },
   logoutArrow: { position: 'absolute', left: 29, top: 5, fontSize: 26, lineHeight: 29, color: '#FFFFFF', fontWeight: '700' },
   logoutLabel: { position: 'absolute', bottom: 8, color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
-  card: { width: '100%', maxWidth: 780, padding: 34, backgroundColor: '#FFFFFF', borderRadius: 30, borderWidth: 1, borderColor: '#E0EFE4', shadowColor: '#1A4530', shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 9 }, elevation: 4 },
+  card: { width: '100%', maxWidth: 780, padding: 22, backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1, borderColor: '#E0EFE4', shadowColor: '#1A4530', shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 9 }, elevation: 4 },
   cardMobile: { padding: 20, borderRadius: 19 },
   stepPills: { flexDirection: 'row', gap: 7, marginBottom: 17 },
   stepPill: { flex: 1, minHeight: 34, borderRadius: 10, backgroundColor: '#EAF5EB', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
   stepPillText: { color: '#718277', fontSize: 11, fontWeight: '700', textAlign: 'center' },
   stepPillTextActive: { color: '#FFFFFF' },
   titleMobile: { fontSize: 25 },
-  eyebrow: { color: '#246B4A', fontSize: 11, fontWeight: '800', letterSpacing: 1.2 }, title: { fontSize: 27, fontWeight: '800', color: '#1C3327', marginTop: 9 },
+  eyebrow: { color: '#246B4A', fontSize: 11, fontWeight: '800', letterSpacing: 1.2 }, title: { fontSize: 24, fontWeight: '800', color: '#1C3327', marginTop: 9 },
   description: { color: '#697B70', marginTop: 8, lineHeight: 21, marginBottom: 20 },
   progressTrack: { height: 7, borderRadius: 7, backgroundColor: '#E8F0EA', marginBottom: 25, overflow: 'hidden' }, progressFill: { height: '100%', backgroundColor: '#006746', borderRadius: 7 },
   section: { fontSize: 17, fontWeight: '700', color: '#1C3327', marginBottom: 15 }, field: { marginBottom: 20 },
