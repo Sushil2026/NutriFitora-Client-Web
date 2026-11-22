@@ -1,8 +1,10 @@
 import React from 'react';
+import useTimeGreeting from './useTimeGreeting';
 import { Image, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 
 type Props = { darkMode?: boolean; onToggleTheme?: () => void; onLogout?: () => void; customerName?: string; navigationLabel?: string; onNavigate?: () => void };
 export default function NutriPageHeader({ darkMode = false, onToggleTheme, onLogout, customerName, navigationLabel, onNavigate }: Props) {
+  const salutation = useTimeGreeting();
   const { width } = useWindowDimensions();
   const compact = width < 600;
   return (
@@ -23,7 +25,7 @@ export default function NutriPageHeader({ darkMode = false, onToggleTheme, onLog
         </View>
       </View>
       <Text style={[s.tagline,{color:darkMode?'#F0F7F1':'#1C4933'},compact&&s.taglineCompact]}><Text style={{color:darkMode?'#91D9AA':'#399466',fontStyle:'italic',fontWeight:'600'}}>Small steps.</Text>{'\n'}Healthier you.</Text>
-      {!!customerName && <Text style={[s.greeting,{color:darkMode?'#B4CBBE':'#557364'}]}>Hello, {customerName}!</Text>}
+      {!!customerName && <Text style={[s.greeting,{color:darkMode?'#B4CBBE':'#557364'}]}>{salutation}, {customerName}!</Text>}
       {!!navigationLabel && !!onNavigate && <TouchableOpacity onPress={onNavigate} accessibilityRole="button" style={[s.nav,{borderColor:darkMode?'#91F1B5':'#006846'}]}><Text style={{color:darkMode?'#91F1B5':'#006846',fontWeight:'700',fontSize:13}}>{navigationLabel}</Text></TouchableOpacity>}
     </View>
   );
