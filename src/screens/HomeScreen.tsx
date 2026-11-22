@@ -1,17 +1,14 @@
 import React from 'react';
-import useTimeGreeting from './useTimeGreeting';
 import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import NutriPageHeader from './NutriPageHeader';
 import NutriPageFooter from './NutriPageFooter';
 
 type Props={darkMode:boolean; customerName:string; onToggleTheme:()=>void; onLogout:()=>void; onAssessment:()=>void; onPrograms:()=>void};
 export default function HomeScreen({darkMode,customerName,onToggleTheme,onLogout,onAssessment,onPrograms}:Props){
- const salutation = useTimeGreeting();
  const c=darkMode?{bg:'#101A16',card:'#1B2A23',soft:'#223E35',text:'#F1F7F2',muted:'#B2C4B7',line:'#34483B',teal:'#087E73'}:{bg:'#EDF7F3',card:'#FFFFFF',soft:'#DDF1E9',text:'#183B33',muted:'#658178',line:'#D6E9E0',teal:'#087F73'};
  return <ScrollView style={{flex:1,backgroundColor:c.bg}} contentContainerStyle={s.page}>
   <NutriPageHeader darkMode={darkMode} onToggleTheme={onToggleTheme} onLogout={onLogout} customerName={customerName}/>
   <Text style={[s.kicker,{color:c.muted}]}>YOUR WELLNESS SPACE</Text>
-  <Text style={[s.heading,{color:c.text}]}>{salutation}, {customerName?.trim().split(/\s+/)[0] || 'there'}!</Text>
   <TouchableOpacity onPress={onPrograms} accessibilityRole="button" style={[s.hero,{backgroundColor:c.teal}]}>
    <Text style={s.heroLabel}>EXPLORE YOUR WELLNESS PLAN</Text><Text style={s.heroTitle}>Ignite 12 · Sample progress</Text>
    <Text style={s.heroBody}>Week 3 of 12 · Demo program — not your actual enrollment.</Text>

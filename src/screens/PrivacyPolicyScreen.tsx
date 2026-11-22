@@ -2,7 +2,7 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import NutriPageHeader from './NutriPageHeader';
 import NutriPageFooter from './NutriPageFooter';
-type Props = { onBack: () => void; darkMode?: boolean; onToggleTheme?: () => void };
+type Props = { onBack: () => void; darkMode?: boolean; onToggleTheme?: () => void; onLogout?: () => void; customerName?: string };
 const sections: Array<[string,string]> = [
  ['Information we collect','Add your verified description of customer information collected.'],
  ['How information is used','Explain your actual purposes for using customer information.'],
@@ -11,12 +11,12 @@ const sections: Array<[string,string]> = [
  ['Your choices and contact','Add the correct contact method and applicable privacy rights.'],
 ];
 /** Replace placeholder policy with approved, verified terms before publishing. */
-export default function PrivacyPolicyScreen({ onBack, darkMode = false, onToggleTheme }: Props) {
+export default function PrivacyPolicyScreen({ onBack, darkMode = false, onToggleTheme, onLogout, customerName }: Props) {
  const {width}=useWindowDimensions(); const mobile=width<600;
  const c=darkMode ? {bg:'#101A16',card:'#1B2A23',border:'#34483B',text:'#F1F7F2',muted:'#B2C4B7',accent:'#8DD5A9'} : {bg:'#F3FBF5',card:'#FFFFFF',border:'#E0EFE4',text:'#1C3327',muted:'#697B70',accent:'#246B4A'};
  return <ScrollView style={{flex:1,backgroundColor:c.bg}} contentContainerStyle={[s.page,{paddingHorizontal:mobile?14:26,paddingTop:mobile?12:28}]}>
   <View style={s.shell}>
-   <NutriPageHeader darkMode={darkMode} onToggleTheme={onToggleTheme} navigationLabel="← Back" onNavigate={onBack}/>
+   <NutriPageHeader darkMode={darkMode} onToggleTheme={onToggleTheme} onLogout={onLogout} customerName={customerName} navigationLabel="← Back" onNavigate={onBack}/>
    <View style={[s.card,mobile&&s.mobile,{backgroundColor:c.card,borderColor:c.border}]}>
     <Text style={[s.eyebrow,{color:c.accent}]}>NUTRIFITORA CUSTOMER PORTAL</Text>
     <Text style={[s.heading,{color:c.text}]}>Privacy Policy</Text>

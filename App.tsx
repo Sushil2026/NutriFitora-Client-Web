@@ -207,11 +207,11 @@ export default function App() {
     return <SafeAreaView style={themed('safe', styles.safe)}>
       <StatusBar style={darkMode ? 'light' : 'dark'} />
       <View style={{flex:1}}>
-        {(['plan','log','charts','track','team','events'] as NutriTab[]).includes(activeTab) && <DemoWellnessScreen key={activeTab} tab={activeTab as 'plan'|'log'|'charts'|'track'|'team'|'events'} darkMode={darkMode} />}
+        {(['plan','log','charts','track','team','events'] as NutriTab[]).includes(activeTab) && <DemoWellnessScreen key={activeTab} tab={activeTab as 'plan'|'log'|'charts'|'track'|'team'|'events'} darkMode={darkMode} customerName={customerName} onToggleTheme={toggleTheme} onLogout={logout} />}
         {activeTab === 'home' && <HomeScreen darkMode={darkMode} customerName={customerName} onToggleTheme={toggleTheme} onLogout={logout} onAssessment={()=>navigate('assessment')} onPrograms={()=>navigate('programs')} />}
         {activeTab === 'assessment' && <AssessmentScreen customerName={customerName} darkMode={darkMode} onToggleTheme={toggleTheme} onViewPrograms={()=>navigate('programs')} onLogout={logout} />}
         {activeTab === 'programs' && <ProgramsScreen darkMode={darkMode} onToggleTheme={toggleTheme} onBack={()=>navigate('assessment')} onLogout={logout} customerName={customerName} />}
-        {activeTab === 'privacy' && <PrivacyPolicyScreen darkMode={darkMode} onToggleTheme={toggleTheme} onBack={()=>navigate('home')} />}
+        {activeTab === 'privacy' && <PrivacyPolicyScreen darkMode={darkMode} onToggleTheme={toggleTheme} onLogout={logout} customerName={customerName} onBack={()=>navigate('home')} />}
       </View>
       <NutriBottomNav active={activeTab} onChange={navigate} darkMode={darkMode} />
     </SafeAreaView>;

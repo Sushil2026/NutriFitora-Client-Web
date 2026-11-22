@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { ScrollView, Text, TextInput, TouchableOpacity, View, StyleSheet } from 'react-native';
 import NutriPageFooter from './NutriPageFooter';
+import NutriPageHeader from './NutriPageHeader';
 import type { NutriTab } from './NutriBottomNav';
 
 type Tab = Extract<NutriTab,'plan'|'log'|'charts'|'track'|'team'|'events'>;
-type Props = {tab:Tab; darkMode:boolean};
+type Props = {tab:Tab; darkMode:boolean; customerName:string; onToggleTheme:()=>void; onLogout:()=>void};
 const mealDefaults = [
  ['Breakfast','Idli with sambar and fruit'],['Lunch','Dal, roti and mixed vegetables'],
  ['Snack','Roasted chana and buttermilk'],['Dinner','Paneer or tofu with vegetables'],['Activity','30-minute brisk walk']
@@ -13,7 +14,7 @@ const sampleCharts = [
  ['Week 3 • Sample diet chart','Breakfast: vegetable poha and curd\nLunch: dal, rice and salad\nSnack: fruit and nuts\nDinner: vegetable khichdi'],
  ['Week 2 • Sample diet chart','Breakfast: oats and fruit\nLunch: roti, paneer and vegetables\nSnack: roasted chana\nDinner: lentil soup and salad']
 ];
-export default function DemoWellnessScreen({tab,darkMode}:Props){
+export default function DemoWellnessScreen({tab,darkMode,customerName,onToggleTheme,onLogout}:Props){
  const c=darkMode?{bg:'#101A16',card:'#1B2A23',soft:'#223E35',text:'#F1F7F2',muted:'#B2C4B7',line:'#34483B',accent:'#8DD5A9',teal:'#087F73',input:'#22352A'}:{bg:'#EDF7F3',card:'#FFFFFF',soft:'#DDF1E9',text:'#183B33',muted:'#658178',line:'#D6E9E0',accent:'#087F73',teal:'#087F73',input:'#FFFFFF'};
  const [done,setDone]=useState<boolean[]>([true,true,true,false,false]);
  const [water,setWater]=useState(4);const [sleep,setSleep]=useState('7');const [weight,setWeight]=useState('73.2');const [mood,setMood]=useState(3);
@@ -26,7 +27,7 @@ export default function DemoWellnessScreen({tab,darkMode}:Props){
  const Btn=({label,onPress,outline=false}:{label:string;onPress:()=>void;outline?:boolean})=><TouchableOpacity accessibilityRole="button" onPress={onPress} style={[s.button,{backgroundColor:outline?c.card:c.teal,borderColor:c.teal,borderWidth:1}]}><Text style={{color:outline?c.accent:'#FFFFFF',fontWeight:'800',fontSize:13}}>{label}</Text></TouchableOpacity>;
  const Input=({value,onChangeText,placeholder}:{value:string;onChangeText:(s:string)=>void;placeholder:string})=><TextInput value={value} onChangeText={onChangeText} placeholder={placeholder} placeholderTextColor={c.muted} style={[s.input,{backgroundColor:c.input,color:c.text,borderColor:c.line}]} />;
  return <ScrollView style={{flex:1,backgroundColor:c.bg}} contentContainerStyle={s.page} keyboardShouldPersistTaps="handled">
- <View style={[s.brand,{backgroundColor:c.teal}]}><Text style={{color:'#FFFFFF',fontWeight:'800',fontSize:12}}>NutriFitora</Text></View>
+ <NutriPageHeader darkMode={darkMode} onToggleTheme={onToggleTheme} onLogout={onLogout} customerName={customerName} />
  <Text style={[s.title,{color:c.text}]}>{title[tab]}</Text>
  <Text style={[s.demo,{color:c.muted}]}>DEMO DATA • Stored on this screen only; not synced to your account</Text>
  {tab==='plan'&&<>{mealDefaults.map(([name,detail],i)=><TouchableOpacity key={name} onPress={()=>setDone(old=>old.map((v,j)=>i===j?!v:v))} style={[s.card,s.planRow,{backgroundColor:c.card,borderColor:c.line}]}><View style={{flex:1}}><Txt bold>{name}</Txt><Txt muted>{detail}</Txt></View><View style={[s.check,{backgroundColor:done[i]?c.teal:c.card,borderColor:c.teal}]}>{done[i]&&<Text style={{color:'#FFFFFF'}}>✓</Text>}</View></TouchableOpacity>)}<Txt muted>{done.filter(Boolean).length} of 5 sample activities checked</Txt></>}
