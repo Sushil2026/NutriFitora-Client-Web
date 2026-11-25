@@ -102,11 +102,17 @@ export default function StaffPortal({ role }: { role: Role }) {
               <View>
                 <Image source={darkMode ? require('../../assets/NutriFitora_logo_white.png') : require('../../assets/NutriFitora_logo.png')} style={styles.brandLogo} resizeMode="contain" accessibilityLabel="Nutri Fitora logo" />
               </View>
+              <View style={styles.headerActions}>
               <TouchableOpacity onPress={toggleTheme} accessibilityRole="switch" accessibilityState={{ checked: darkMode }} accessibilityLabel={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} style={[styles.loginThemeButton, isMobile && styles.loginThemeButtonCompact, darkMode ? styles.loginThemeButtonDark : styles.loginThemeButtonLight]}>
                 <View style={[styles.loginThemeThumb, isMobile && styles.loginThemeThumbCompact, darkMode ? styles.loginThemeThumbDark : styles.loginThemeThumbLight]}>
                   <Text style={[styles.loginThemeIcon, isMobile && styles.loginThemeIconCompact, darkMode && styles.loginThemeIconDark]}>{darkMode ? '☾' : '☀'}</Text>
                 </View>
               </TouchableOpacity>
+                {!!token && <TouchableOpacity onPress={signOut} accessibilityRole="button" accessibilityLabel="Logout" style={[styles.logout, { backgroundColor: darkMode ? '#F4F8F4' : '#006746' }]}>
+                  <Text style={[styles.logoutIcon, { color: darkMode ? '#246B4A' : '#FFFFFF' }]}>⇥</Text>
+                  <Text style={[styles.logoutText, { color: darkMode ? '#246B4A' : '#FFFFFF' }]}>Logout</Text>
+                </TouchableOpacity>}
+              </View>
             </View>
             <View style={styles.taglineRow}>
               <Text style={themed('tagline', styles.tagline)}>
@@ -154,12 +160,8 @@ export default function StaffPortal({ role }: { role: Role }) {
                     {admin ? <>{tile('Customers', stats?.customers)}{tile('Nutritionists', stats?.nutritionists)}{tile('Active users', stats?.activeUsers)}</> : <>{tile('Assigned clients', stats?.assignedClients)}{tile('Appointments', stats?.appointments)}{tile('Pending reviews', stats?.pendingReviews)}</>}
                   </View>
                   {!admin && <Text style={themed('subtitle', styles.subtitle)}>Dashboard metrics are placeholders until assignments and appointments are implemented.</Text>}
-                  <TouchableOpacity onPress={signOut} style={themed('button', styles.button)}><Text style={styles.buttonText}>Sign out</Text></TouchableOpacity>
                 </>
               )}
-              <TouchableOpacity onPress={goCustomer} style={styles.staffReturn}>
-                <Text style={themed('forgotText', styles.forgotText)}>Return to Customer Portal</Text>
-              </TouchableOpacity>
             </View>
           </View>
           <BotanicalWaves dark={darkMode} />
@@ -171,6 +173,10 @@ export default function StaffPortal({ role }: { role: Role }) {
 }
 
 const styles = StyleSheet.create({
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  logout: { width: 52, height: 50, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  logoutIcon: { fontSize: 20, lineHeight: 23, fontWeight: '700' },
+  logoutText: { fontSize: 11, fontWeight: '700' },
   nutritionistIllustration: { alignSelf: "center", marginBottom: 12 },
   staffTiles: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   staffTile: { flexGrow: 1, minWidth: 135, padding: 18, borderWidth: 1, borderRadius: 12, borderColor: "#E0EFE4" },
