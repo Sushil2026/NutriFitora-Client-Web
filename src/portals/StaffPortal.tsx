@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ActivityIndicator, Image, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions, Platform } from 'react-native';
+import DashboardScreen from '../nutritionist/DashboardScreen';
 import { StatusBar } from 'expo-status-bar';
 
 // Decorative shapes use native Views; no external image or animation package.
@@ -94,13 +95,13 @@ export default function StaffPortal({ role }: { role: Role }) {
   return (
     <SafeAreaView style={themed('safe', styles.safe)}>
       <StatusBar style={darkMode ? 'light' : 'dark'} />
-      <ScrollView style={themed('scroll', styles.scroll)} contentContainerStyle={[themed('page', styles.page), isMobile && styles.pageMobile]} keyboardShouldPersistTaps="always">
-        <View style={themed('shell', styles.shell)}>
+      <ScrollView style={themed('scroll', styles.scroll)} contentContainerStyle={[themed('page', styles.page), isMobile && styles.pageMobile, !!token && !admin && {justifyContent:'flex-start',paddingHorizontal:width<600?12:24}]} keyboardShouldPersistTaps="always">
+        <View style={[themed('shell', styles.shell), !!token && !admin && {maxWidth: 1240}] }>
           <BotanicalAccent dark={darkMode} />
           <View style={[styles.authHeaderPanel, isMobile && styles.authHeaderPanelMobile, darkMode && styles.authHeaderPanelDark]}>
             <View style={themed('loginHeader', styles.loginHeader)}>
               <View>
-                <Image source={darkMode ? require('../../assets/NutriFitora_logo_white.png') : require('../../assets/NutriFitora_logo.png')} style={styles.brandLogo} resizeMode="contain" accessibilityLabel="Nutri Fitora logo" />
+                <Image source={darkMode ? require('../../assets/NutriFitora_logo_white.png') : require('../../assets/NutriFitora_logo.png')} style={[styles.brandLogo, !!token && !admin && {width:Math.min(180,Math.max(80,width-190))}]} resizeMode="contain" accessibilityLabel="Nutri Fitora logo" />
               </View>
               <View style={styles.headerActions}>
               <TouchableOpacity onPress={toggleTheme} accessibilityRole="switch" accessibilityState={{ checked: darkMode }} accessibilityLabel={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} style={[styles.loginThemeButton, isMobile && styles.loginThemeButtonCompact, darkMode ? styles.loginThemeButtonDark : styles.loginThemeButtonLight]}>
@@ -122,7 +123,7 @@ export default function StaffPortal({ role }: { role: Role }) {
             </View>
           </View>
 
-          <View style={[themed('card', styles.card), isMobile && styles.cardMobile]}>
+          {!!token && !admin ? <DashboardScreen token={token} apiUrl={API_URL} dark={darkMode} name={fullName} onLogout={signOut} /> : <View style={[themed('card', styles.card), isMobile && styles.cardMobile]}>
             <View style={styles.formContent}>
               {!token ? (
                 <>
@@ -163,7 +164,7 @@ export default function StaffPortal({ role }: { role: Role }) {
                 </>
               )}
             </View>
-          </View>
+          </View>}
           <BotanicalWaves dark={darkMode} />
           <Text style={themed('footer', styles.footer)}>Your wellness, one choice at a time.</Text>
         </View>
