@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import StaffPortal from './src/portals/StaffPortal';
 import {
   ActivityIndicator,
   Alert,
@@ -57,12 +58,24 @@ type ApiResponse = {
   message?: string;
   title?: string;
   errors?: Record<string, string[]>;
-  user?: { fullName?: string };
+  user?: { fullName?: string; roles?: string[] };
   token?: string;
 };
 type Mode = 'login' | 'register';
 
 export default function App() {
+  // Separate staff URLs; existing customer experience remains at /.
+  const staffRoute = Platform.OS === 'web' && typeof window !== 'undefined'
+    ? window.location.pathname.replace(/\/+$/, '').toLowerCase()
+    : '';
+  if (staffRoute === '/admin/login' || staffRoute === '/admin/dashboard')
+    return <StaffPortal role="admin" />;
+  if (staffRoute === '/nutritionist/login' || staffRoute === '/nutritionist/dashboard')
+    return <StaffPortal role="nutritionist" />;
+  return <CustomerApp />;
+}
+
+function CustomerApp() {
   const { width: viewportWidth } = useWindowDimensions();
   const compactToggle = viewportWidth < 600;
   const isMobile = viewportWidth < 600;
@@ -132,6 +145,7 @@ export default function App() {
           : {
               email: email.trim(),
               password,
+              portal: "customer",
             };
 
       const response = await fetch(
