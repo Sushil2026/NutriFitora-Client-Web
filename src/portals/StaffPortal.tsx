@@ -98,10 +98,10 @@ export default function StaffPortal({ role }: { role: Role }) {
       <ScrollView style={themed('scroll', styles.scroll)} contentContainerStyle={[themed('page', styles.page), isMobile && styles.pageMobile, !!token && !admin && {justifyContent:'flex-start',paddingHorizontal:width<600?12:24}]} keyboardShouldPersistTaps="always">
         <View style={[themed('shell', styles.shell), !!token && !admin && {maxWidth: 1240}] }>
           <BotanicalAccent dark={darkMode} />
-          <View style={[styles.authHeaderPanel, isMobile && styles.authHeaderPanelMobile, darkMode && styles.authHeaderPanelDark]}>
+          <View style={[styles.authHeaderPanel, isMobile && styles.authHeaderPanelMobile, darkMode && styles.authHeaderPanelDark, !!token && !admin && isMobile && {paddingHorizontal:10,paddingVertical:8,marginBottom:10}]}>
             <View style={themed('loginHeader', styles.loginHeader)}>
               <View>
-                <Image source={darkMode ? require('../../assets/NutriFitora_logo_white.png') : require('../../assets/NutriFitora_logo.png')} style={[styles.brandLogo, !!token && !admin && {width:Math.min(180,Math.max(80,width-190))}]} resizeMode="contain" accessibilityLabel="Nutri Fitora logo" />
+                <Image source={darkMode ? require('../../assets/NutriFitora_logo_white.png') : require('../../assets/NutriFitora_logo.png')} style={[styles.brandLogo, !!token && !admin && {width:Math.min(180,Math.max(80,width-190)), ...(isMobile?{height:48,width:Math.min(145,Math.max(80,width-175))}:{})}]} resizeMode="contain" accessibilityLabel="Nutri Fitora logo" />
               </View>
               <View style={styles.headerActions}>
               <TouchableOpacity onPress={toggleTheme} accessibilityRole="switch" accessibilityState={{ checked: darkMode }} accessibilityLabel={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} style={[styles.loginThemeButton, isMobile && styles.loginThemeButtonCompact, darkMode ? styles.loginThemeButtonDark : styles.loginThemeButtonLight]}>
@@ -109,14 +109,14 @@ export default function StaffPortal({ role }: { role: Role }) {
                   <Text style={[styles.loginThemeIcon, isMobile && styles.loginThemeIconCompact, darkMode && styles.loginThemeIconDark]}>{darkMode ? '☾' : '☀'}</Text>
                 </View>
               </TouchableOpacity>
-                {!!token && <TouchableOpacity onPress={signOut} accessibilityRole="button" accessibilityLabel="Logout" style={[styles.logout, { backgroundColor: darkMode ? '#F4F8F4' : '#006746' }]}>
+                {!!token && <TouchableOpacity onPress={signOut} accessibilityRole="button" accessibilityLabel="Logout" style={[styles.logout, !!token && !admin && isMobile && {width:46,height:44}, { backgroundColor: darkMode ? '#F4F8F4' : '#006746' }]}>
                   <Text style={[styles.logoutIcon, { color: darkMode ? '#246B4A' : '#FFFFFF' }]}>⇥</Text>
                   <Text style={[styles.logoutText, { color: darkMode ? '#246B4A' : '#FFFFFF' }]}>Logout</Text>
                 </TouchableOpacity>}
               </View>
             </View>
             <View style={styles.taglineRow}>
-              <Text style={themed('tagline', styles.tagline)}>
+              <Text style={[themed('tagline', styles.tagline), !!token && !admin && isMobile && {fontSize:18,lineHeight:23}]}>
                 <Text style={themed('taglineAccent', styles.taglineAccent)}>Small steps.</Text>
                 {'\n'}Healthier you.
               </Text>
