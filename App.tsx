@@ -97,6 +97,17 @@ function CustomerApp() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const passwordRules = [
+    { label: '12–128 characters', ok: password.length >= 12 && password.length <= 128 },
+    { label: 'Uppercase letter', ok: /[A-Z]/.test(password) },
+    { label: 'Lowercase letter', ok: /[a-z]/.test(password) },
+    { label: 'Number', ok: /[0-9]/.test(password) },
+    { label: 'Special character', ok: /[^\p{L}\p{N}\s]/u.test(password) },
+  ];
+  const mobileValid = /^[6-9][0-9]{9}$/.test(phone);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [showPrivacyPolicy, setShowPrivacyPolicy] =
@@ -118,14 +129,13 @@ function CustomerApp() {
       return;
     }
 
-    if (mode === 'register' && name.trim().length < 2) {
-      notify('Enter your full name.');
-      return;
-    }
-
-    if (mode === 'register' && password.length < 8) {
-      notify('Password must be at least 8 characters.');
-      return;
+    if (mode === 'register') {
+      if (name.trim().length < 2 || name.trim().length > 100) { notify('Enter a full name of 2–100 characters.'); return; }
+      if (email.trim().length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { notify('Enter a valid email address.'); return; }
+      if (!mobileValid) { notify('Enter a valid 10-digit Indian mobile number.'); return; }
+      if (!passwordRules.every(rule => rule.ok)) { notify('Please meet all password requirements.'); return; }
+      if (password !== confirmPassword) { notify('Passwords do not match.'); return; }
+      if (!acceptedPrivacy) { notify('Please accept the Privacy Policy.'); return; }
     }
 
     setBusy(true);
@@ -139,7 +149,8 @@ function CustomerApp() {
           ? {
               fullName: name.trim(),
               email: email.trim(),
-              phoneNumber: phone.trim() || null,
+              phoneNumber: `+91${phone}`,
+              acceptedPrivacy,
               password,
             }
           : {
@@ -186,6 +197,9 @@ function CustomerApp() {
         );
         setMode('login');
         setPassword('');
+        setConfirmPassword('');
+        setAcceptedPrivacy(false);
+        setShowPassword(false);
       } else {
         notify(
           `Welcome${data.user?.fullName ? ` ${data.user.fullName}` : ''}! Login successful.`
@@ -365,15 +379,19 @@ function CustomerApp() {
                 />
 
                 <Text style={themed('label', styles.label)}>
-                  Mobile number (optional)
+                  Mobile number (+91)
                 </Text>
 
                 <TextInput
                   style={themed('input', styles.input)}
                   value={phone}
-                  onChangeText={setPhone}
-                  placeholder="Enter mobile number" placeholderTextColor={darkMode ? "#A5BBAA" : "#88998D"}
-                  keyboardType="phone-pad"
+                  onChangeText={(text) => setPhone(text.replace(/[^0-9]/g, '').slice(0, 10))}
+                  maxLength={10}
+                  inputMode="numeric"
+                  autoCorrect={false}
+                  autoCapitalize="none"
+                  placeholder="10-digit mobile number" placeholderTextColor={darkMode ? "#A5BBAA" : "#88998D"}
+                  keyboardType="number-pad"
                 />
               </>
             )}
@@ -402,11 +420,25 @@ function CustomerApp() {
               style={themed('input', styles.input)}
               value={password}
               onChangeText={setPassword}
-              placeholder="At least 8 characters" placeholderTextColor={darkMode ? "#A5BBAA" : "#88998D"}
-              secureTextEntry
+              placeholder={mode === 'register' ? "At least 12 characters" : "Enter password"} placeholderTextColor={darkMode ? "#A5BBAA" : "#88998D"}
+              secureTextEntry={!showPassword}
               autoCapitalize="none"
             />
 
+            {mode === 'register' && (
+              <View style={{ gap: 6, marginTop: 8 }}>
+                <TouchableOpacity onPress={() => setShowPassword(v => !v)} accessibilityRole="button">
+                  <Text style={themed('privacyLink', styles.privacyLink)}>{showPassword ? 'Hide password' : 'Show password'}</Text>
+                </TouchableOpacity>
+                {passwordRules.map(rule => <Text key={rule.label} style={{ color: rule.ok ? (darkMode ? '#A6E4BC' : '#087F72') : (darkMode ? '#FCA5A5' : '#B91C1C'), fontSize: 13 }}>{rule.ok ? '✓' : '○'} {rule.label}</Text>)}
+                <Text style={themed('label', styles.label)}>Confirm password</Text>
+                <TextInput style={themed('input', styles.input)} value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry={!showPassword} autoCapitalize="none" autoCorrect={false} placeholder="Re-enter password" placeholderTextColor={darkMode ? '#A5BBAA' : '#88998D'} />
+                {!!confirmPassword && password !== confirmPassword && <Text style={{ color: darkMode ? '#FCA5A5' : '#B91C1C' }}>Passwords do not match.</Text>}
+                <TouchableOpacity accessibilityRole="checkbox" accessibilityState={{ checked: acceptedPrivacy }} onPress={() => setAcceptedPrivacy(v => !v)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8 }}>
+                  <Text style={themed('label', styles.label)}>{acceptedPrivacy ? '☑' : '☐'} I accept the Privacy Policy</Text>
+                </TouchableOpacity>
+              </View>
+            )}
             {/* Forgot Password */}
             {mode === 'login' && (
               <TouchableOpacity
