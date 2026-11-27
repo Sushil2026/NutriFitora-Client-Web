@@ -1,9 +1,10 @@
 import {AuthHeader, AuthFooter} from './src/screens/AuthChrome';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import StaffPortal from './src/portals/StaffPortal';
 import {
   ActivityIndicator,
+  BackHandler,
   Alert,
   Image,
   Modal,
@@ -83,20 +84,62 @@ function readRoute(): PortalRoute {
 }
 export default function App() {
   const [route, setRoute] = useState<PortalRoute>(readRoute);
+  const session = useRef<{role: PortalRoute; token: string} | null>(null);
+  const [generation, setGeneration] = useState(0);
+  const navigationVersion = useRef(0);
+  const renderVersion = navigationVersion.current;
+  const replace = (path: string) => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') window.history.replaceState({}, '', path);
+  };
+  const endSession = (destination: PortalRoute = 'home') => {
+    session.current = null;
+    navigationVersion.current += 1;
+    replace(paths[destination]);
+    setGeneration(v => v + 1);
+    setRoute(destination);
+  };
+  const beginSession = (role: PortalRoute, token: string) => {
+    if (renderVersion !== navigationVersion.current) return;
+    session.current = {role, token};
+    replace(`/${role}/dashboard`);
+  };
   useEffect(() => {
-    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
-    const sync = () => setRoute(readRoute());
+    if (Platform.OS !== 'web' || typeof window === 'undefined') {
+      const sub = BackHandler.addEventListener('hardwareBackPress', () => !!session.current);
+      return () => sub.remove();
+    }
+    const sync = () => {
+      if (session.current) {
+        replace(`/${session.current.role}/dashboard`);
+        return;
+      }
+      const next = readRoute();
+      if (/\/dashboard\/?$/i.test(window.location.pathname)) replace(paths[next]);
+      navigationVersion.current += 1;
+      setGeneration(v => v + 1);
+      setRoute(next);
+    };
+    const restored = (event: PageTransitionEvent) => { if (event.persisted) endSession(); else sync(); };
+    // A document restored from browser history must not retain a live session.
+    const leaving = () => { session.current = null; };
+    window.addEventListener('pagehide', leaving);
+    sync();
     window.addEventListener('popstate', sync);
-    return () => window.removeEventListener('popstate', sync);
+    window.addEventListener('pageshow', restored);
+    return () => { window.removeEventListener('popstate', sync); window.removeEventListener('pageshow', restored); window.removeEventListener('pagehide', leaving); };
   }, []);
   const navigate = (next: PortalRoute) => {
-    if (Platform.OS === 'web' && typeof window !== 'undefined') window.history.pushState({}, '', paths[next]);
+    if (session.current) return;
+    if (Platform.OS === 'web' && typeof window !== 'undefined') window.history.replaceState({}, '', paths[next]);
+    navigationVersion.current += 1;
+    setGeneration(v => v + 1);
     setRoute(next);
   };
   const home = () => navigate('home');
-  if (route === 'admin' || route === 'nutritionist') return <StaffPortal key={route} role={route} onHome={home} />;
+  const logout = () => endSession();
+  if (route === 'admin' || route === 'nutritionist') return <StaffPortal key={`${route}-${generation}`} role={route} onHome={home} onSession={token => beginSession(route, token)} onSignOut={logout} />;
   if (route === 'home') return <WelcomeScreen onNavigate={navigate} />;
-  return <CustomerApp key={route} initialMode={route === 'register' ? 'register' : 'login'} initialPrivacy={route === 'privacy'} onHome={home} onNavigate={navigate} />;
+  return <CustomerApp key={`${route}-${generation}`} initialMode={route === 'register' ? 'register' : 'login'} initialPrivacy={route === 'privacy'} onHome={home} onNavigate={navigate} onSession={token => beginSession('customer', token)} onSignOut={logout} />;
 }
 
 function WelcomeScreen({onNavigate}: {onNavigate: (route: PortalRoute) => void}) {
@@ -145,7 +188,7 @@ function WelcomeScreen({onNavigate}: {onNavigate: (route: PortalRoute) => void})
   </SafeAreaView>;
 }
 
-function CustomerApp({initialMode='login',initialPrivacy=false,onHome,onNavigate}: {initialMode?: Mode; initialPrivacy?: boolean; onHome:()=>void; onNavigate:(route:PortalRoute)=>void}) {
+function CustomerApp({initialMode='login',initialPrivacy=false,onHome,onNavigate,onSession,onSignOut}: {initialMode?: Mode; initialPrivacy?: boolean; onHome:()=>void; onNavigate:(route:PortalRoute)=>void; onSession:(token:string)=>void; onSignOut:()=>void}) {
   const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
   const compactToggle = viewportWidth < 600;
   const isMobile = viewportWidth < 600;
@@ -316,7 +359,7 @@ function CustomerApp({initialMode='login',initialPrivacy=false,onHome,onNavigate
         setChallenge(data.challengeId); setOtp(''); setClock(Date.now()); setResendAt(Date.now()+60000); setMessage('New code sent.');
       } else {
         if (!data.accessToken || !data.user?.roles?.includes('Customer')) throw new Error('Invalid login response.');
-        setChallenge(''); setOtp(''); setCustomerName(data.user.fullName || ''); setLoggedIn(true);
+        setChallenge(''); setOtp(''); setCustomerName(data.user.fullName || ''); onSession(data.accessToken); setLoggedIn(true);
       }
     } catch (error) { setMessage(error instanceof Error ? error.message : 'Verification failed.'); }
     finally { setBusy(false); }
@@ -333,7 +376,7 @@ function CustomerApp({initialMode='login',initialPrivacy=false,onHome,onNavigate
   }
 
   if (loggedIn) {
-    const logout = () => { setLoggedIn(false); setShowPrograms(false); setActiveTab('home'); setCustomerName(''); setPassword(''); setMessage(''); setMode('login'); };
+    const logout = () => { setLoggedIn(false); setShowPrograms(false); setActiveTab('home'); setCustomerName(''); setName(''); setEmail(''); setPhone(''); setPassword(''); setConfirmPassword(''); setChallenge(''); setOtp(''); setMessage(''); setAcceptedPrivacy(false); onSignOut(); };
     const navigate = (tab: NutriTab) => { setActiveTab(tab); setShowPrograms(tab === 'programs'); };
     return <SafeAreaView style={themed('safe', styles.safe)}>
       <StatusBar style={darkMode ? 'light' : 'dark'} />

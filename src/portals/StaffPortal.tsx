@@ -34,7 +34,7 @@ const API_URL = (process.env.EXPO_PUBLIC_API_URL || 'https://nutrifitora-client-
 type Role = 'admin' | 'nutritionist';
 type Dashboard = { customers?: number; nutritionists?: number; activeUsers?: number; assignedClients?: number; appointments?: number; pendingReviews?: number; dataStatus?: string };
 
-export default function StaffPortal({ role, onHome }: { role: Role; onHome?: () => void }) {
+export default function StaffPortal({ role, onHome, onSession, onSignOut }: { role: Role; onHome?: () => void; onSession?: (token: string) => void; onSignOut?: () => void }) {
   const admin = role === 'admin';
   const title = admin ? 'Administrator' : 'Nutritionist';
   const expectedRole = admin ? 'Administrator' : 'Nutritionist';
@@ -52,7 +52,7 @@ export default function StaffPortal({ role, onHome }: { role: Role; onHome?: () 
   const [busy, setBusy] = useState(false);
   const themed = (key: string, style: any) => [darkMode ? [style, appDarkOverrides[key]] : style, !token && loginFit[key]];
   const toggleTheme = () => setDarkMode(current => !current);
-  const logout = () => { setToken(''); setStats(null); setPassword(''); setMessage(''); };
+  const logout = () => { setToken(''); setStats(null); setFullName(''); setEmail(''); setPassword(''); setShowPassword(false); setMessage(''); };
   const goCustomer = () => { if (onHome) { onHome(); return; } if (Platform.OS === 'web' && typeof window !== 'undefined') window.location.assign('/'); };
 
   async function signIn() {
@@ -78,7 +78,8 @@ export default function StaffPortal({ role, onHome }: { role: Role; onHome?: () 
       if (!dashboardResponse.ok) throw new Error(`Unable to load your dashboard (HTTP ${dashboardResponse.status}).`);
       const dashboard = await dashboardResponse.json();
       setStats(dashboard); setFullName(body.user?.fullName || title); setToken(accessToken); setPassword('');
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      if (onSession) onSession(accessToken);
+      else if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.history.replaceState({}, '', `/${role}/dashboard`);
       }
     } catch (error) {
@@ -87,6 +88,7 @@ export default function StaffPortal({ role, onHome }: { role: Role; onHome?: () 
   }
   function signOut() {
     logout();
+    if (onSignOut) { onSignOut(); return; }
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       window.history.replaceState({}, '', `/${role}/login`);
     }
