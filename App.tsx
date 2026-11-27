@@ -5,6 +5,8 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Modal,
+  KeyboardAvoidingView,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -60,6 +62,9 @@ type ApiResponse = {
   errors?: Record<string, string[]>;
   user?: { fullName?: string; roles?: string[] };
   token?: string;
+  accessToken?: string;
+  otpRequired?: boolean;
+  challengeId?: string;
 };
 type Mode = 'login' | 'register';
 
@@ -108,6 +113,11 @@ function CustomerApp() {
     { label: 'Special character', ok: /[^\p{L}\p{N}\s]/u.test(password) },
   ];
   const mobileValid = /^[6-9][0-9]{9}$/.test(phone);
+  const [challenge, setChallenge] = useState('');
+  const [otp, setOtp] = useState('');
+  const [resendAt, setResendAt] = useState(0);
+  const [clock, setClock] = useState(Date.now());
+  useEffect(() => { if (!challenge) return; const timer = setInterval(() => setClock(Date.now()), 1000); return () => clearInterval(timer); }, [challenge]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [showPrivacyPolicy, setShowPrivacyPolicy] =
@@ -201,12 +211,9 @@ function CustomerApp() {
         setAcceptedPrivacy(false);
         setShowPassword(false);
       } else {
-        notify(
-          `Welcome${data.user?.fullName ? ` ${data.user.fullName}` : ''}! Login successful.`
-        );
-        setPassword('');
-        setCustomerName(data.user?.fullName || '');
-        setLoggedIn(true);
+        if (!data.otpRequired || !data.challengeId) throw new Error('Email verification is unavailable. Please contact support.');
+        setChallenge(data.challengeId); setOtp(''); setPassword(''); setClock(Date.now()); setResendAt(Date.now()+60000);
+        setMessage('Verification code sent to your email.');
       }
     } catch (error) {
       const isNetworkError =
@@ -222,6 +229,33 @@ function CustomerApp() {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function submitOtp(resend: boolean) {
+    if (busy || !challenge || (resend && Date.now()<resendAt)) return;
+    if (!resend && !/^[0-9]{6}$/.test(otp)) { setMessage('Enter all six digits.'); return; }
+    setBusy(true); setMessage('');
+    try {
+      const response = await fetch(`${API_URL}/api/auth/otp/${resend ? 'resend' : 'verify'}`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({challengeId:challenge, ...(resend ? {} : {code:otp})})
+      });
+      const data: ApiResponse = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Verification failed.');
+      if (resend) {
+        if (!data.challengeId) throw new Error('Unable to resend code.');
+        setChallenge(data.challengeId); setOtp(''); setClock(Date.now()); setResendAt(Date.now()+60000); setMessage('New code sent.');
+      } else {
+        if (!data.accessToken || !data.user?.roles?.includes('Customer')) throw new Error('Invalid login response.');
+        setChallenge(''); setOtp(''); setCustomerName(data.user.fullName || ''); setLoggedIn(true);
+      }
+    } catch (error) { setMessage(error instanceof Error ? error.message : 'Verification failed.'); }
+    finally { setBusy(false); }
+  }
+
+  function closeOtp() {
+    if (busy) return;
+    setChallenge(''); setOtp(''); setMessage('');
   }
 
   function openPrivacyPolicy() {
@@ -456,7 +490,7 @@ function CustomerApp() {
             )}
 
             {/* API response messages */}
-            {!!message && (
+            {!challenge && !!message && (
               <Text
                 accessibilityRole="alert"
                 style={themed('message', styles.message)}
@@ -515,11 +549,52 @@ function CustomerApp() {
 
         </View>
       </ScrollView>
+      <Modal visible={!!challenge} transparent animationType="fade" onRequestClose={closeOtp}>
+        <KeyboardAvoidingView style={styles.otpOverlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.otpCenter}>
+            <View accessibilityViewIsModal style={[styles.otpCard, darkMode && styles.otpCardDark]}>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Close verification" disabled={busy} onPress={closeOtp} style={[styles.otpClose, {backgroundColor: darkMode ? '#30483D' : '#EDF4EF'}]}><Text style={{fontSize:24,color:darkMode?'#E3F4E9':'#24543D'}}>×</Text></TouchableOpacity>
+              <View style={[styles.otpIcon,{backgroundColor:darkMode?'#315944':'#E0F3E6'}]}><Text style={{fontSize:32,color:darkMode?'#A6E4BC':'#087F72'}}>✉</Text></View>
+              <Text style={[styles.otpEyebrow,{color:darkMode?'#A6E4BC':'#087F72'}]}>SECURE CUSTOMER LOGIN</Text>
+              <Text style={[styles.otpTitle,{color:darkMode?'#F0FAF3':'#173D2D'}]}>Verify your email</Text>
+              <Text style={[styles.otpDescription,{color:darkMode?'#B9D0C2':'#52695B'}]}>Enter the 6-digit verification code sent to</Text>
+              <Text style={[styles.otpEmail,{color:darkMode?'#E0F3E6':'#173D2D'}]}>{email.trim().replace(/^(.{1,2})[^@]*(@.*)$/, '$1••••$2')}</Text>
+              <View style={styles.otpDigits}>
+                {Array.from({length:6},(_,i)=><View key={i} style={[styles.otpDigit,{backgroundColor:darkMode?'#182C24':'#F6FAF7',borderColor:i===otp.length?'#16866B':darkMode?'#496458':'#D3E3D9'}]}><Text style={{fontSize:24,fontWeight:'700',color:darkMode?'#F0FAF3':'#173D2D'}}>{otp[i] || '·'}</Text></View>)}
+                <TextInput style={styles.otpCapture} value={otp} onChangeText={v=>setOtp(v.replace(/[^0-9]/g,'').slice(0,6))} maxLength={6} keyboardType="number-pad" inputMode="numeric" autoComplete="one-time-code" accessibilityLabel="Six digit verification code" editable={!busy} caretHidden autoFocus onSubmitEditing={()=>submitOtp(false)} />
+              </View>
+              <Text style={[styles.otpDescription,{color:darkMode?'#B9D0C2':'#52695B'}]}>Code expires 5 minutes after sending.</Text>
+              {!!message && <Text accessibilityRole="alert" style={[styles.otpNotice,{color:message==='New code sent.'?(darkMode?'#A6E4BC':'#087F72'):(darkMode?'#FCA5A5':'#B91C1C')}]}>{message}</Text>}
+              <TouchableOpacity accessibilityRole="button" disabled={busy || otp.length!==6} onPress={()=>submitOtp(false)} style={[styles.otpVerify,(busy || otp.length!==6)&&styles.buttonDisabled]}>{busy?<ActivityIndicator color="#FFFFFF"/>:<Text style={styles.buttonText}>Verify &amp; Login  →</Text>}</TouchableOpacity>
+              <Text style={[styles.otpDescription,{color:darkMode?'#B9D0C2':'#52695B'}]}>Didn't receive the code?</Text>
+              <TouchableOpacity accessibilityRole="button" disabled={busy || clock<resendAt} onPress={()=>submitOtp(true)} style={{padding:10}}><Text style={{textAlign:'center',fontWeight:'700',color:clock<resendAt||busy?(darkMode?'#9CB3A5':'#66796D'):(darkMode?'#A6E4BC':'#087F72')}}>{clock<resendAt ? `Resend in ${Math.ceil((resendAt-clock)/1000)}s` : 'Resend OTP'}</Text></TouchableOpacity>
+              <View style={[styles.otpDivider,{backgroundColor:darkMode?'#496458':'#E1EBE4'}]}/>
+              <TouchableOpacity accessibilityRole="button" disabled={busy} onPress={closeOtp} style={{padding:10}}><Text style={{textAlign:'center',fontWeight:'600',color:darkMode?'#B9D0C2':'#52695B'}}>← Back to login</Text></TouchableOpacity>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  otpOverlay: {flex:1,backgroundColor:'rgba(8,25,19,0.68)'},
+  otpCenter: {flexGrow:1,justifyContent:'center',alignItems:'center',padding:16},
+  otpCard: {width:'100%',maxWidth:420,backgroundColor:'#FFFFFF',borderRadius:28,padding:24,alignItems:'center',gap:8,shadowColor:'#000',shadowOpacity:0.22,shadowRadius:24,shadowOffset:{width:0,height:12},elevation:12},
+  otpCardDark: {backgroundColor:'#20372D'},
+  otpClose: {position:'absolute',top:12,right:12,width:40,height:40,borderRadius:20,alignItems:'center',justifyContent:'center'},
+  otpIcon: {width:70,height:70,borderRadius:24,alignItems:'center',justifyContent:'center',marginTop:6,marginBottom:6},
+  otpEyebrow: {fontSize:10,fontWeight:'800',letterSpacing:1.4,textAlign:'center'},
+  otpTitle: {fontSize:26,fontWeight:'800',textAlign:'center'},
+  otpDescription: {fontSize:13,lineHeight:20,textAlign:'center'},
+  otpEmail: {fontSize:14,fontWeight:'700',textAlign:'center'},
+  otpDigits: {width:'100%',flexDirection:'row',gap:6,position:'relative',marginVertical:12},
+  otpDigit: {flex:1,minWidth:0,height:52,borderWidth:1.5,borderRadius:12,alignItems:'center',justifyContent:'center'},
+  otpCapture: {position:'absolute',top:0,bottom:0,left:0,right:0,opacity:0.02,color:'transparent',fontSize:16},
+  otpNotice: {fontSize:13,textAlign:'center',paddingVertical:6},
+  otpVerify: {width:'100%',minHeight:50,borderRadius:14,backgroundColor:'#08795B',alignItems:'center',justifyContent:'center',marginVertical:8},
+  otpDivider: {height:1,width:'100%'},
   privacyTopPanel: { width: '94%', maxWidth: 780, alignSelf: 'center', marginTop: 16, marginBottom: 12, paddingHorizontal: 16, paddingVertical: 12, borderWidth: 1, borderColor: '#C8DED0', borderRadius: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   privacyTopPanelDark: { borderColor: '#45604B' },
   authHeaderPanel: { width: '100%', borderWidth: 1, borderColor: '#C8DED0', borderRadius: 20, backgroundColor: 'transparent', paddingHorizontal: 18, paddingTop: 12, paddingBottom: 12, marginBottom: 18 },
