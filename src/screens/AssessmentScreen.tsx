@@ -161,9 +161,11 @@ export default function AssessmentScreen({ customerName, onLogout, darkMode = fa
           <View style={themed('progressTrack', styles.progressTrack)}><View style={[themed('progressFill', styles.progressFill), { width: `${(step + 1) * 25}%` }]} /></View>
           {step === 0 && <>
             <Text style={themed('section', styles.section)}>Your basic information</Text>
-            {numeric('age', 'Age (18+)', 'e.g. 28')}
-            {numeric('heightCm', 'Height (cm)', 'e.g. 165')}
-            {numeric('weightKg', 'Weight (kg)', 'e.g. 65')}
+            <View style={{flexDirection: width >= 900 ? 'row' : 'column', gap: width >= 900 ? 16 : 0}}>
+              <View style={{flex: width >= 900 ? 1 : undefined, minWidth:0}}>{numeric('age', 'Age (18+)', 'e.g. 28')}</View>
+              <View style={{flex: width >= 900 ? 1 : undefined, minWidth:0}}>{numeric('heightCm', 'Height (cm)', 'e.g. 165')}</View>
+              <View style={{flex: width >= 900 ? 1 : undefined, minWidth:0}}>{numeric('weightKg', 'Weight (kg)', 'e.g. 65')}</View>
+            </View>
             {bmiPanel}
             <Text style={themed('hint', styles.hint)}>These details are for assessment context, not a medical diagnosis.</Text>
           </>}
@@ -199,17 +201,17 @@ export default function AssessmentScreen({ customerName, onLogout, darkMode = fa
   );
 }
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F3FBF5' }, page: { flexGrow: 1, alignItems: 'center', alignSelf: 'center', width: '100%', maxWidth: 832, paddingHorizontal: 26, paddingTop: 16, paddingBottom: 24 },
+  screen: { flex: 1, backgroundColor: '#F3FBF5' }, page: { flexGrow: 1, alignItems: 'center', alignSelf: 'center', width: '100%',  paddingHorizontal: 26, paddingTop: 16, paddingBottom: 24 },
   pageMobile: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 32 },
-  headerPanel: { width: '100%', maxWidth: 780, backgroundColor: 'transparent', borderRadius: 20, borderWidth: 1, borderColor: '#C8DED0', paddingHorizontal: 18, paddingTop: 12, paddingBottom: 12, marginBottom: 18 },
+  headerPanel: { width: '100%',  backgroundColor: 'transparent', borderRadius: 20, borderWidth: 1, borderColor: '#C8DED0', paddingHorizontal: 18, paddingTop: 12, paddingBottom: 12, marginBottom: 18 },
   headerPanelMobile: { paddingHorizontal: 14, paddingTop: 8, paddingBottom: 10, borderRadius: 19, marginBottom: 14 },
-  top: { width: '100%', maxWidth: 780, minHeight: 86, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 },
+  top: { width: '100%',  minHeight: 86, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 },
   topMobile: { minHeight: 78, flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 6 },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   headerActionsMobile: { flexShrink: 0, marginLeft: 'auto' },
   logoBadge: { width: 180, height: 82, alignItems: 'center', justifyContent: 'center' },
   headerLogo: { width: 168, height: 72 },
-  greeting: { width: '100%', maxWidth: 780, color: '#557364', textAlign: 'left', marginTop: 0, marginBottom: 0, fontSize: 14, fontWeight: '600' },
+  greeting: { width: '100%',  color: '#557364', textAlign: 'left', marginTop: 0, marginBottom: 0, fontSize: 14, fontWeight: '600' },
   themeButton: { width: 72, height: 38, borderRadius: 22, borderWidth: 1.5, borderColor: '#79C96E', backgroundColor: '#F9FFF8', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', paddingHorizontal: 3 },
   themeButtonCompact: { width: 52, height: 28, borderRadius: 16, borderWidth: 1, paddingHorizontal: 2 },
   themeButtonDark: { backgroundColor: '#123D35', borderColor: '#4BAA95', justifyContent: 'flex-start' },
@@ -228,7 +230,7 @@ const styles = StyleSheet.create({
   logoutDoor: { position: 'absolute', left: 22, top: 9, width: 16, height: 22, borderWidth: 2, borderRightWidth: 0, borderColor: '#FFFFFF', borderTopLeftRadius: 3, borderBottomLeftRadius: 3 },
   logoutArrow: { position: 'absolute', left: 29, top: 5, fontSize: 26, lineHeight: 29, color: '#FFFFFF', fontWeight: '700' },
   logoutLabel: { position: 'absolute', bottom: 8, color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
-  card: { width: '100%', maxWidth: 780, padding: 22, backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1, borderColor: '#E0EFE4', shadowColor: '#1A4530', shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 9 }, elevation: 4 },
+  card: { width: '100%',  padding: 22, backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1, borderColor: '#E0EFE4', shadowColor: '#1A4530', shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 9 }, elevation: 4 },
   cardMobile: { padding: 20, borderRadius: 19 },
   stepPills: { flexDirection: 'row', gap: 7, marginBottom: 17 },
   stepPill: { flex: 1, minHeight: 34, borderRadius: 10, backgroundColor: '#EAF5EB', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },

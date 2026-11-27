@@ -52,6 +52,7 @@ export default function ProgramsScreen({
 }: Props) {
   const { width } = useWindowDimensions();
   const small = width < 600;
+  const columns = width >= 1350 ? 3 : width >= 850 ? 2 : 1;
   const [programs, setPrograms] = useState<Program[]>([]);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -98,7 +99,7 @@ export default function ProgramsScreen({
       contentContainerStyle={[styles.page, { paddingHorizontal: small ? 14 : 24 }]}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load(true)} />}
     >
-      <View style={[styles.container, { maxWidth: 780 }]}>
+      <View style={styles.container}>
         <NutriPageHeader darkMode={darkMode} onToggleTheme={onToggleTheme} onLogout={onLogout} customerName={customerName} navigationLabel="← Assessment" onNavigate={onBack} />
 
         <View style={[styles.mainPanel, { backgroundColor: palette.card, borderColor: palette.border }, small && styles.mainPanelMobile]}>
@@ -119,6 +120,7 @@ export default function ProgramsScreen({
           <Text style={{ color: palette.muted, marginTop: 20 }}>No programs are available yet.</Text>
         )}
 
+        <View style={{flexDirection: columns > 1 ? 'row' : 'column', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start'}}>
         {!loading && programs.map(program => {
           const open = expandedId === program.id;
           const hasPrice = typeof program.priceInr === 'number' && Number.isFinite(program.priceInr);
@@ -126,7 +128,7 @@ export default function ProgramsScreen({
 
           return (
             <View key={program.id}
-              style={[styles.card, { backgroundColor: palette.card, borderColor: open ? palette.accent : palette.border }]}>
+              style={[styles.card, { width: columns === 3 ? '32%' : columns === 2 ? '49%' : '100%', backgroundColor: palette.card, borderColor: open ? palette.accent : palette.border }]}>
               <TouchableOpacity
                 accessibilityRole="button"
                 accessibilityState={{ expanded: open }}
@@ -204,6 +206,7 @@ export default function ProgramsScreen({
           );
         })}
         </View>
+        </View>
         <NutriPageFooter darkMode={darkMode} />
       </View>
     </ScrollView>
@@ -212,7 +215,7 @@ export default function ProgramsScreen({
 
 const styles = StyleSheet.create({
   page: { flexGrow: 1, alignItems: 'center', paddingTop: 16, paddingBottom: 24 },
-  container: { width: '100%', maxWidth: 780, alignSelf: 'center' },
+  container: { width: '100%',  alignSelf: 'center' },
   headerPanel: { width: '100%', borderWidth: 1, borderRadius: 20, paddingHorizontal: 18, paddingTop: 12, paddingBottom: 12, marginBottom: 18 },
   headerMobile: { paddingHorizontal: 14, paddingTop: 8, paddingBottom: 10 },
   headerTop: { width: '100%', minHeight: 86, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
