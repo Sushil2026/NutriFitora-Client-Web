@@ -1,3 +1,5 @@
+import NutriPageHeader from '../screens/NutriPageHeader';
+import NutriPageFooter from '../screens/NutriPageFooter';
 import AdminLayout from '../admin/AdminLayout';
 import ClientAssignmentsScreen from '../admin/ClientAssignmentsScreen';
 import React, { useState } from 'react';
@@ -94,17 +96,12 @@ export default function StaffPortal({ role }: { role: Role }) {
     </View>
   );
 
-  if (admin && token) return <AdminLayout token={token} apiUrl={API_URL} dark={darkMode} name={fullName} onToggleTheme={toggleTheme} onLogout={signOut} />;
-  return (
-    <SafeAreaView style={themed('safe', styles.safe)}>
-      <StatusBar style={darkMode ? 'light' : 'dark'} />
-      <ScrollView style={themed('scroll', styles.scroll)} contentContainerStyle={[themed('page', styles.page), isMobile && styles.pageMobile, !!token && !admin && {justifyContent:'flex-start',paddingHorizontal:width<600?12:24}]} keyboardShouldPersistTaps="always">
-        <View style={[themed('shell', styles.shell), !!token && !admin && {maxWidth: 1240}] }>
+  const sharedHeader = <View style={{width:'100%',position:'relative'}}>
           <BotanicalAccent dark={darkMode} />
-          <View style={[styles.authHeaderPanel, isMobile && styles.authHeaderPanelMobile, darkMode && styles.authHeaderPanelDark, !!token && !admin && isMobile && {paddingHorizontal:10,paddingVertical:8,marginBottom:10}]}>
+          <View style={[styles.authHeaderPanel, isMobile && styles.authHeaderPanelMobile, darkMode && styles.authHeaderPanelDark, !!token && isMobile && {paddingHorizontal:10,paddingVertical:8,marginBottom:10}]}>
             <View style={themed('loginHeader', styles.loginHeader)}>
               <View>
-                <Image source={darkMode ? require('../../assets/NutriFitora_logo_white.png') : require('../../assets/NutriFitora_logo.png')} style={[styles.brandLogo, !!token && !admin && {width:Math.min(180,Math.max(80,width-190)), ...(isMobile?{height:48,width:Math.min(145,Math.max(80,width-175))}:{})}]} resizeMode="contain" accessibilityLabel="Nutri Fitora logo" />
+                <Image source={darkMode ? require('../../assets/NutriFitora_logo_white.png') : require('../../assets/NutriFitora_logo.png')} style={[styles.brandLogo, !!token && {width:Math.min(180,Math.max(80,width-190)), ...(isMobile?{height:48,width:Math.min(145,Math.max(80,width-175))}:{})}]} resizeMode="contain" accessibilityLabel="Nutri Fitora logo" />
               </View>
               <View style={styles.headerActions}>
               <TouchableOpacity onPress={toggleTheme} accessibilityRole="switch" accessibilityState={{ checked: darkMode }} accessibilityLabel={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} style={[styles.loginThemeButton, isMobile && styles.loginThemeButtonCompact, darkMode ? styles.loginThemeButtonDark : styles.loginThemeButtonLight]}>
@@ -112,19 +109,31 @@ export default function StaffPortal({ role }: { role: Role }) {
                   <Text style={[styles.loginThemeIcon, isMobile && styles.loginThemeIconCompact, darkMode && styles.loginThemeIconDark]}>{darkMode ? '☾' : '☀'}</Text>
                 </View>
               </TouchableOpacity>
-                {!!token && <TouchableOpacity onPress={signOut} accessibilityRole="button" accessibilityLabel="Logout" style={[styles.logout, !!token && !admin && isMobile && {width:46,height:44}, { backgroundColor: darkMode ? '#F4F8F4' : '#006746' }]}>
+                {!!token && <TouchableOpacity onPress={signOut} accessibilityRole="button" accessibilityLabel="Logout" style={[styles.logout, !!token && isMobile && {width:46,height:44}, { backgroundColor: darkMode ? '#F4F8F4' : '#006746' }]}>
                   <Text style={[styles.logoutIcon, { color: darkMode ? '#246B4A' : '#FFFFFF' }]}>⇥</Text>
                   <Text style={[styles.logoutText, { color: darkMode ? '#246B4A' : '#FFFFFF' }]}>Logout</Text>
                 </TouchableOpacity>}
               </View>
             </View>
             <View style={styles.taglineRow}>
-              <Text style={[themed('tagline', styles.tagline), !!token && !admin && isMobile && {fontSize:18,lineHeight:23}]}>
+              <Text style={[themed('tagline', styles.tagline), !!token && isMobile && {fontSize:18,lineHeight:23}]}>
                 <Text style={themed('taglineAccent', styles.taglineAccent)}>Small steps.</Text>
                 {'\n'}Healthier you.
               </Text>
             </View>
           </View>
+  </View>;
+  const sharedFooter = <View style={{width:'100%'}}><BotanicalWaves dark={darkMode} /><Text style={themed('footer', styles.footer)}>Your wellness, one choice at a time.</Text></View>;
+  if (admin && token) return <AdminLayout token={token} apiUrl={API_URL} dark={darkMode} name={fullName}
+    header={<><StatusBar style={darkMode ? 'light' : 'dark'} /><NutriPageHeader darkMode={darkMode} customerName={fullName} onToggleTheme={toggleTheme} onLogout={signOut} /></>}
+    footer={<NutriPageFooter darkMode={darkMode} />}
+  />;
+  return (
+    <SafeAreaView style={themed('safe', styles.safe)}>
+      <StatusBar style={darkMode ? 'light' : 'dark'} />
+      <ScrollView style={themed('scroll', styles.scroll)} contentContainerStyle={[themed('page', styles.page), isMobile && styles.pageMobile, !!token && !admin && {justifyContent:'flex-start',paddingHorizontal:width<600?12:24}]} keyboardShouldPersistTaps="always">
+        <View style={[themed('shell', styles.shell), !!token && !admin && {maxWidth: '100%', alignSelf: 'stretch'}] }>
+          {sharedHeader}
 
           {!!token && !admin ? <DashboardScreen token={token} apiUrl={API_URL} dark={darkMode} name={fullName} onLogout={signOut} /> : <View style={[themed('card', styles.card), isMobile && styles.cardMobile]}>
             <View style={styles.formContent}>
@@ -169,8 +178,7 @@ export default function StaffPortal({ role }: { role: Role }) {
               )}
             </View>
           </View>}
-          <BotanicalWaves dark={darkMode} />
-          <Text style={themed('footer', styles.footer)}>Your wellness, one choice at a time.</Text>
+          {sharedFooter}
         </View>
       </ScrollView>
     </SafeAreaView>

@@ -21,10 +21,10 @@ type Overview={activeClients:number;newClients:number;pausedClients:number;expir
 export default function DashboardScreen({token,apiUrl,dark,name,onLogout}:{token:string;apiUrl:string;dark:boolean;name:string;onLogout:()=>void}){
  const {width}=useWindowDimensions();
  const [contentWidth,setContentWidth]=useState(0);
- const available=contentWidth || Math.min(1240,width-28);
+ const available=contentWidth || Math.max(0,width-(width<600?24:48));
  const compact=available<560;
- const statColumns=available>=1100?4:available>=300?2:1;
- const taskColumns=available>=560?2:1;
+ const statColumns=available>=720?4:available>=300?2:1;
+ const taskColumns=available>=1280?4:available>=560?2:1;
  const tileWidth=(columns:number)=>Math.max(0,(available-12*(columns-1))/columns);
  const [data,setData]=useState<Overview|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(true),[query,setQuery]=useState('');
  const [section,setSection]=useState('Dashboard');
