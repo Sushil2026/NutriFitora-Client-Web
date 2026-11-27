@@ -1,3 +1,4 @@
+import {AuthHeader, AuthFooter} from '../screens/AuthChrome';
 import NutriPageHeader from '../screens/NutriPageHeader';
 import NutriPageFooter from '../screens/NutriPageFooter';
 import AdminLayout from '../admin/AdminLayout';
@@ -19,9 +20,9 @@ function BotanicalAccent({ dark = false, bottom = false }: { dark?: boolean; bot
     </View>
   );
 }
-function BotanicalWaves({ dark = false }: { dark?: boolean }) {
+function BotanicalWaves({ dark = false, compact = false }: { dark?: boolean; compact?: boolean }) {
   return (
-    <View pointerEvents="none" style={{ height: 98, overflow: 'hidden', width: '100%', position: 'relative', marginTop: 18 }}>
+    <View pointerEvents="none" style={{ height: compact ? 28 : 98, overflow: 'hidden', width: '100%', position: 'relative', marginTop: compact ? 0 : 18 }}>
       <View style={{ position: 'absolute', left: -45, right: -45, top: 26, height: 170, borderTopLeftRadius: 170, borderTopRightRadius: 220, backgroundColor: dark ? '#174F47' : '#D9F2D1', transform: [{ rotate: '-6deg' }] }} />
       <View style={{ position: 'absolute', left: -40, right: -45, top: 56, height: 150, borderTopLeftRadius: 190, borderTopRightRadius: 170, backgroundColor: dark ? '#227568' : '#AFE4A0', transform: [{ rotate: '5deg' }] }} />
       <BotanicalAccent dark={dark} bottom />
@@ -33,25 +34,26 @@ const API_URL = (process.env.EXPO_PUBLIC_API_URL || 'https://nutrifitora-client-
 type Role = 'admin' | 'nutritionist';
 type Dashboard = { customers?: number; nutritionists?: number; activeUsers?: number; assignedClients?: number; appointments?: number; pendingReviews?: number; dataStatus?: string };
 
-export default function StaffPortal({ role }: { role: Role }) {
+export default function StaffPortal({ role, onHome }: { role: Role; onHome?: () => void }) {
   const admin = role === 'admin';
   const title = admin ? 'Administrator' : 'Nutritionist';
   const expectedRole = admin ? 'Administrator' : 'Nutritionist';
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const isMobile = width < 600;
-  const staffImageWidth = Math.min(isMobile ? width * 0.46 : 190, 190);
+  const staffImageWidth = 56;
   const [darkMode, setDarkMode] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword,setShowPassword]=useState(false);
   const [token, setToken] = useState('');
   const [fullName, setFullName] = useState('');
   const [stats, setStats] = useState<Dashboard | null>(null);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
-  const themed = (key: string, style: any) => darkMode ? [style, appDarkOverrides[key]] : style;
+  const themed = (key: string, style: any) => [darkMode ? [style, appDarkOverrides[key]] : style, !token && loginFit[key]];
   const toggleTheme = () => setDarkMode(current => !current);
   const logout = () => { setToken(''); setStats(null); setPassword(''); setMessage(''); };
-  const goCustomer = () => { if (Platform.OS === 'web' && typeof window !== 'undefined') window.location.assign('/'); };
+  const goCustomer = () => { if (onHome) { onHome(); return; } if (Platform.OS === 'web' && typeof window !== 'undefined') window.location.assign('/'); };
 
   async function signIn() {
     if (!email.trim() || !password) { setMessage('Enter your email and password.'); return; }
@@ -96,34 +98,8 @@ export default function StaffPortal({ role }: { role: Role }) {
     </View>
   );
 
-  const sharedHeader = <View style={{width:'100%',position:'relative'}}>
-          <BotanicalAccent dark={darkMode} />
-          <View style={[styles.authHeaderPanel, isMobile && styles.authHeaderPanelMobile, darkMode && styles.authHeaderPanelDark, !!token && isMobile && {paddingHorizontal:10,paddingVertical:8,marginBottom:10}]}>
-            <View style={themed('loginHeader', styles.loginHeader)}>
-              <View>
-                <Image source={darkMode ? require('../../assets/NutriFitora_logo_white.png') : require('../../assets/NutriFitora_logo.png')} style={[styles.brandLogo, !!token && {width:Math.min(180,Math.max(80,width-190)), ...(isMobile?{height:48,width:Math.min(145,Math.max(80,width-175))}:{})}]} resizeMode="contain" accessibilityLabel="Nutri Fitora logo" />
-              </View>
-              <View style={styles.headerActions}>
-              <TouchableOpacity onPress={toggleTheme} accessibilityRole="switch" accessibilityState={{ checked: darkMode }} accessibilityLabel={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} style={[styles.loginThemeButton, isMobile && styles.loginThemeButtonCompact, darkMode ? styles.loginThemeButtonDark : styles.loginThemeButtonLight]}>
-                <View style={[styles.loginThemeThumb, isMobile && styles.loginThemeThumbCompact, darkMode ? styles.loginThemeThumbDark : styles.loginThemeThumbLight]}>
-                  <Text style={[styles.loginThemeIcon, isMobile && styles.loginThemeIconCompact, darkMode && styles.loginThemeIconDark]}>{darkMode ? '☾' : '☀'}</Text>
-                </View>
-              </TouchableOpacity>
-                {!!token && <TouchableOpacity onPress={signOut} accessibilityRole="button" accessibilityLabel="Logout" style={[styles.logout, !!token && isMobile && {width:46,height:44}, { backgroundColor: darkMode ? '#F4F8F4' : '#006746' }]}>
-                  <Text style={[styles.logoutIcon, { color: darkMode ? '#246B4A' : '#FFFFFF' }]}>⇥</Text>
-                  <Text style={[styles.logoutText, { color: darkMode ? '#246B4A' : '#FFFFFF' }]}>Logout</Text>
-                </TouchableOpacity>}
-              </View>
-            </View>
-            <View style={styles.taglineRow}>
-              <Text style={[themed('tagline', styles.tagline), !!token && isMobile && {fontSize:18,lineHeight:23}]}>
-                <Text style={themed('taglineAccent', styles.taglineAccent)}>Small steps.</Text>
-                {'\n'}Healthier you.
-              </Text>
-            </View>
-          </View>
-  </View>;
-  const sharedFooter = <View style={{width:'100%'}}><BotanicalWaves dark={darkMode} /><Text style={themed('footer', styles.footer)}>Your wellness, one choice at a time.</Text></View>;
+  const sharedHeader = <NutriPageHeader darkMode={darkMode} customerName={fullName} onToggleTheme={toggleTheme} onLogout={signOut}/>;
+  const sharedFooter = <NutriPageFooter darkMode={darkMode}/>;
   if (admin && token) return <AdminLayout token={token} apiUrl={API_URL} dark={darkMode} name={fullName}
     header={<><StatusBar style={darkMode ? 'light' : 'dark'} /><NutriPageHeader darkMode={darkMode} customerName={fullName} onToggleTheme={toggleTheme} onLogout={signOut} /></>}
     footer={<NutriPageFooter darkMode={darkMode} />}
@@ -131,31 +107,34 @@ export default function StaffPortal({ role }: { role: Role }) {
   return (
     <SafeAreaView style={themed('safe', styles.safe)}>
       <StatusBar style={darkMode ? 'light' : 'dark'} />
-      <ScrollView style={themed('scroll', styles.scroll)} contentContainerStyle={[themed('page', styles.page), isMobile && styles.pageMobile, !!token && !admin && {justifyContent:'flex-start',paddingHorizontal:width<600?12:24}]} keyboardShouldPersistTaps="always">
-        <View style={[themed('shell', styles.shell), !!token && !admin && {maxWidth: '100%', alignSelf: 'stretch'}] }>
-          {sharedHeader}
+      <ScrollView style={themed('scroll', styles.scroll)} contentContainerStyle={[themed('page', styles.page), isMobile && styles.pageMobile, !token && {paddingHorizontal:isMobile?10:20,paddingTop:10,paddingBottom:10}, !!token && !admin && {justifyContent:'flex-start',paddingHorizontal:width<600?12:24}]} keyboardShouldPersistTaps="always">
+        <View style={[themed('shell', styles.shell), !!token && !admin && {maxWidth: '100%', alignSelf: 'stretch'}, !token && {maxWidth:'100%',flexGrow:1,justifyContent:'space-between',gap:10}] }>
+          {!token && <AuthHeader dark={darkMode} onToggle={toggleTheme} onHome={goCustomer} />}
+          <View style={{width:'100%',flexDirection:!token && width>=850?'row':'column',alignItems:(!token && width >= 850)?'stretch':'center',flexGrow:!token?1:0,gap:12}}>
+          {!!token ? sharedHeader : width>=850 ? <View style={{flex:1,width:0,backgroundColor:darkMode?'#153E32':'#155D49',borderRadius:16,padding:height<760?18:28,justifyContent:'center'}}><View style={{gap:10}}><Text style={{fontSize:Math.min(36,width*0.03),fontWeight:'800',color:'#FFFFFF'}}>{admin?'Lead with confidence.':'Make wellness your mission.'}</Text><Text style={{color:'#D2EBDD',fontSize:16}}>Your secure professional workspace.</Text><Image source={admin?require('../../assets/login-admin-art.jpg'):require('../../assets/login-nutritionist-art.jpg')} resizeMode="contain" style={{width:'100%',height:Math.max(80,Math.min(180,height*0.20)),borderRadius:12,backgroundColor:'#FFFFFF'}}/>{(admin?['Manage customers and teams','Oversee wellness programs','Monitor platform activity']:['Manage your clients','Plan personalised nutrition','Track client progress']).map(item=><Text key={item} style={{color:'#D8F2DF',fontSize:15}}>✓  {item}</Text>)}</View></View> : null}
 
-          {!!token && !admin ? <DashboardScreen token={token} apiUrl={API_URL} dark={darkMode} name={fullName} onLogout={signOut} /> : <View style={[themed('card', styles.card), isMobile && styles.cardMobile]}>
+          {!!token && !admin ? <DashboardScreen token={token} apiUrl={API_URL} dark={darkMode} name={fullName} onLogout={signOut} /> : <View style={[themed('card', styles.card), isMobile && styles.cardMobile, !token && {flex:width>=850?1:undefined,padding:height<760?20:32,justifyContent:'center',borderRadius:0,borderWidth:0,shadowOpacity:0,elevation:0,width:width>=850?0:'100%'}]}>
             <View style={styles.formContent}>
               {!token ? (
                 <>
                   <Image
                     source={admin
-                      ? require('../../assets/NutriFitora_Admin_Illustration.png')
-                      : require('../../assets/NutriFitora_Nutritionist_Illustration.png')}
+                      ? require('../../assets/portal-admin-icon.png')
+                      : require('../../assets/portal-nutritionist-icon.png')}
                     style={[styles.nutritionistIllustration, {
                       width: staffImageWidth,
-                      height: staffImageWidth * (admin ? 0.95 : 0.74),
+                      height: staffImageWidth,
                     }]}
                     resizeMode="contain"
                     accessibilityLabel={admin
                       ? 'Administrator managing the wellness platform on a laptop'
                       : 'Nutritionist holding a clipboard with fresh produce'}
                   />
+                  <Text style={themed('heading', styles.heading)}>{title} Login</Text>
                   <Text style={themed('label', styles.label)}>Email address</Text>
                   <TextInput style={themed('input', styles.input)} value={email} onChangeText={setEmail} placeholder="name@example.com" placeholderTextColor={darkMode ? '#A5BBAA' : '#88998D'} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} autoComplete="email" />
                   <Text style={themed('label', styles.label)}>Password</Text>
-                  <TextInput style={themed('input', styles.input)} value={password} onChangeText={setPassword} placeholder="At least 8 characters" placeholderTextColor={darkMode ? '#A5BBAA' : '#88998D'} secureTextEntry autoCapitalize="none" autoComplete="current-password" onSubmitEditing={signIn} />
+                  <TextInput style={themed('input', styles.input)} value={password} onChangeText={setPassword} placeholder="At least 8 characters" placeholderTextColor={darkMode ? '#A5BBAA' : '#88998D'} secureTextEntry={!showPassword} autoCapitalize="none" autoComplete="current-password" onSubmitEditing={signIn} /><TouchableOpacity onPress={()=>setShowPassword(v=>!v)} accessibilityRole="button"><Text style={{color:darkMode?"#A8EA8D":"#087F72",textAlign:"right",paddingVertical:5}}>{showPassword?"Hide password":"Show password"}</Text></TouchableOpacity>
                   <TouchableOpacity style={themed('forgot', styles.forgot)} onPress={() => setMessage('Password reset will be added in the next step.')}>
                     <Text style={themed('forgotText', styles.forgotText)}>Forgot password?</Text>
                   </TouchableOpacity>
@@ -178,7 +157,8 @@ export default function StaffPortal({ role }: { role: Role }) {
               )}
             </View>
           </View>}
-          {sharedFooter}
+          </View>
+          {token ? sharedFooter : <AuthFooter dark={darkMode} />}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -203,7 +183,7 @@ const styles = StyleSheet.create({
   authHeaderPanelMobile: { paddingHorizontal: 14, paddingTop: 8, paddingBottom: 10, borderRadius: 19, marginBottom: 14 },
   pageMobile: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 32 },
   cardMobile: { padding: 20, borderRadius: 19 },
-  formContent: { width: '100%', maxWidth: 560, alignSelf: 'center' },
+  formContent: { width: '100%', maxWidth: 480, alignSelf: 'center' },
   eyebrow: { color: '#246B4A', fontSize: 11, fontWeight: '800', letterSpacing: 1.2, marginBottom: 7 },
   authHeaderPanelDark: { borderColor: '#45604B' },
   secondaryPageLogo: {
@@ -464,3 +444,5 @@ const appDarkOverrides: Record<string, object> = {
   terms: { color: '#B5C9BA' }, privacyLink: { color: '#A6E4BC' },
   footer: { color: '#A0B7A6' },
 };
+
+const loginFit: Record<string, object> = { page:{paddingTop:10,paddingBottom:10}, tagline:{fontSize:22,lineHeight:26}, loginHeader:{marginBottom:2}, tabs:{marginBottom:8}, tab:{paddingVertical:8}, subtitle:{marginTop:3,marginBottom:5}, label:{marginTop:9,marginBottom:5,fontSize:14}, input:{height:46,fontSize:16}, forgot:{marginTop:7}, button:{height:46,marginTop:10}, termsContainer:{marginTop:7}, privacyButton:{minHeight:32,paddingVertical:5}, footer:{marginTop:4}, message:{marginTop:7,padding:7} };
