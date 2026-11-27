@@ -113,7 +113,7 @@ export default function StaffPortal({ role, onHome }: { role: Role; onHome?: () 
           <View style={{width:'100%',flexDirection:!token && width>=850?'row':'column',alignItems:(!token && width >= 850)?'stretch':'center',flexGrow:!token?1:0,gap:12}}>
           {!!token ? sharedHeader : width>=850 ? <View style={{flex:1,width:0,backgroundColor:darkMode?'#153E32':'#155D49',borderRadius:16,padding:height<760?18:28,justifyContent:'center'}}><View style={{gap:10}}><Text style={{fontSize:Math.min(36,width*0.03),fontWeight:'800',color:'#FFFFFF'}}>{admin?'Lead with confidence.':'Make wellness your mission.'}</Text><Text style={{color:'#D2EBDD',fontSize:16}}>Your secure professional workspace.</Text><Image source={admin?require('../../assets/login-admin-art.jpg'):require('../../assets/login-nutritionist-art.jpg')} resizeMode="contain" style={{width:'100%',height:Math.max(80,Math.min(180,height*0.20)),borderRadius:12,backgroundColor:'#FFFFFF'}}/>{(admin?['Manage customers and teams','Oversee wellness programs','Monitor platform activity']:['Manage your clients','Plan personalised nutrition','Track client progress']).map(item=><Text key={item} style={{color:'#D8F2DF',fontSize:15}}>✓  {item}</Text>)}</View></View> : null}
 
-          {!!token && !admin ? <DashboardScreen token={token} apiUrl={API_URL} dark={darkMode} name={fullName} onLogout={signOut} /> : <View style={[themed('card', styles.card), isMobile && styles.cardMobile, !token && {flex:width>=850?1:undefined,padding:height<760?20:32,justifyContent:'center',borderRadius:0,borderWidth:0,shadowOpacity:0,elevation:0,width:width>=850?0:'100%'}]}>
+          {!!token && !admin ? <DashboardScreen token={token} apiUrl={API_URL} dark={darkMode} name={fullName} onLogout={signOut} /> : <View style={[themed('card', styles.card), isMobile && styles.cardMobile, !token && {flex:width>=850?1:undefined,padding:height<760?20:32,justifyContent:'center',borderRadius:22,borderWidth:2,borderColor:darkMode?'#58B98B':'#238B61',shadowColor:'#164D36',shadowOpacity:0.09,shadowRadius:12,shadowOffset:{width:0,height:4},elevation:3,width:width>=850?0:'100%'}]}>
             <View style={styles.formContent}>
               {!token ? (
                 <>
@@ -122,15 +122,16 @@ export default function StaffPortal({ role, onHome }: { role: Role; onHome?: () 
                       ? require('../../assets/portal-admin-icon.png')
                       : require('../../assets/portal-nutritionist-icon.png')}
                     style={[styles.nutritionistIllustration, {
-                      width: staffImageWidth,
-                      height: staffImageWidth,
+                      width: width<600?64:76,
+                      height: width<600?64:76,
+                      alignSelf: "center", marginTop:4, marginBottom:12,
                     }]}
                     resizeMode="contain"
                     accessibilityLabel={admin
                       ? 'Administrator managing the wellness platform on a laptop'
                       : 'Nutritionist holding a clipboard with fresh produce'}
                   />
-                  <Text style={themed('heading', styles.heading)}>{title} Login</Text>
+                  <Text style={[themed('heading', styles.heading),{textAlign:'center'}]}>{title} Login</Text>
                   <Text style={themed('label', styles.label)}>Email address</Text>
                   <TextInput style={themed('input', styles.input)} value={email} onChangeText={setEmail} placeholder="name@example.com" placeholderTextColor={darkMode ? '#A5BBAA' : '#88998D'} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} autoComplete="email" />
                   <Text style={themed('label', styles.label)}>Password</Text>
@@ -368,8 +369,10 @@ const styles = StyleSheet.create({
   },
 
   message: {
-    color: '#246B4A',
-    backgroundColor: '#EDF7F0',
+    color: '#B91C1C',
+    backgroundColor: '#FEE2E2',
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
     padding: 11,
     borderRadius: 9,
     marginTop: 16,
@@ -440,7 +443,7 @@ const appDarkOverrides: Record<string, object> = {
   selectedText: { color: '#B9F2CB' }, heading: { color: '#F1F7F2' },
   subtitle: { color: '#B5C9BA' }, label: { color: '#DDECE0' },
   input: { backgroundColor: '#22352A', borderColor: '#45604B', color: '#FFFFFF' },
-  forgotText: { color: '#A6E4BC' }, message: { color: '#F4C2A7', backgroundColor: '#283F32' },
+  forgotText: { color: '#A6E4BC' }, message: { color: '#FECACA', backgroundColor: '#451F24', borderColor: '#9F454B' },
   terms: { color: '#B5C9BA' }, privacyLink: { color: '#A6E4BC' },
   footer: { color: '#A0B7A6' },
 };

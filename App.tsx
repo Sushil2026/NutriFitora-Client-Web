@@ -96,7 +96,7 @@ export default function App() {
   const home = () => navigate('home');
   if (route === 'admin' || route === 'nutritionist') return <StaffPortal key={route} role={route} onHome={home} />;
   if (route === 'home') return <WelcomeScreen onNavigate={navigate} />;
-  return <CustomerApp key={route} initialMode={route === 'register' ? 'register' : 'login'} initialPrivacy={route === 'privacy'} onHome={home} />;
+  return <CustomerApp key={route} initialMode={route === 'register' ? 'register' : 'login'} initialPrivacy={route === 'privacy'} onHome={home} onNavigate={navigate} />;
 }
 
 function WelcomeScreen({onNavigate}: {onNavigate: (route: PortalRoute) => void}) {
@@ -145,7 +145,7 @@ function WelcomeScreen({onNavigate}: {onNavigate: (route: PortalRoute) => void})
   </SafeAreaView>;
 }
 
-function CustomerApp({initialMode='login',initialPrivacy=false,onHome}: {initialMode?: Mode; initialPrivacy?: boolean; onHome:()=>void}) {
+function CustomerApp({initialMode='login',initialPrivacy=false,onHome,onNavigate}: {initialMode?: Mode; initialPrivacy?: boolean; onHome:()=>void; onNavigate:(route:PortalRoute)=>void}) {
   const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
   const compactToggle = viewportWidth < 600;
   const isMobile = viewportWidth < 600;
@@ -157,8 +157,11 @@ function CustomerApp({initialMode='login',initialPrivacy=false,onHome}: {initial
 
   const [darkMode, setDarkMode] = useState(false);
   const toggleTheme = () => setDarkMode(current => !current);
-  const themed = (key: string, style: any) => [style, darkMode && appDarkOverrides[key], mode === 'login' && !loggedIn && loginFit[key]];
+  const themed = (key: string, style: any) => [style, darkMode && appDarkOverrides[key], !loggedIn && loginFit[key]];
   const [mode, setMode] = useState<Mode>(initialMode);
+  const registration = mode === 'register';
+  const wideAuth = viewportWidth >= 850;
+  const [registered,setRegistered] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [showPrograms, setShowPrograms] = useState(false);
   const [activeTab, setActiveTab] = useState<NutriTab>('home');
@@ -197,6 +200,7 @@ function CustomerApp({initialMode='login',initialPrivacy=false,onHome}: {initial
   }
 
   async function submit() {
+    if (busy) return;
     setMessage('');
 
     if (!email.trim() || !password) {
@@ -270,11 +274,11 @@ function CustomerApp({initialMode='login',initialPrivacy=false,onHome}: {initial
         notify(
           'Account created successfully. Please follow the email verification instructions if required.'
         );
-        setMode('login');
         setPassword('');
         setConfirmPassword('');
         setAcceptedPrivacy(false);
         setShowPassword(false);
+        setRegistered(true);
       } else {
         if (!data.otpRequired || !data.challengeId) throw new Error('Email verification is unavailable. Please contact support.');
         setChallenge(data.challengeId); setOtp(''); setPassword(''); setClock(Date.now()); setResendAt(Date.now()+60000);
@@ -361,80 +365,36 @@ function CustomerApp({initialMode='login',initialPrivacy=false,onHome}: {initial
 
       <ScrollView
         style={themed('scroll', styles.scroll)}
-        contentContainerStyle={[themed('page', styles.page), isMobile && styles.pageMobile, mode === 'login' && {padding: viewportWidth < 600 ? 10 : 20, paddingTop: 10, paddingBottom: 10}]}
+        contentContainerStyle={[themed('page', styles.page), isMobile && styles.pageMobile, {padding: viewportWidth < 600 ? 10 : 20, paddingTop: 10, paddingBottom: 10}]}
         keyboardShouldPersistTaps="always"
       >
-        <View style={[themed('shell', styles.shell), {maxWidth:mode==='login'?'100%':780, flexGrow:1, justifyContent:'space-between',gap:10}]}>
+        <View style={[themed('shell', styles.shell), {maxWidth:'100%', flexGrow:1, justifyContent:'space-between',gap:10}]}>
           <AuthHeader dark={darkMode} onToggle={toggleTheme} onHome={onHome} />
 
-          <View style={{width:'100%', flexDirection:mode === 'login' && viewportWidth >= 850 ? 'row' : 'column', alignItems:(mode === 'login' && viewportWidth >= 850)?'stretch':'center', flexGrow:mode === 'login'?1:0, gap:12}}>
-          {mode === 'login' && viewportWidth >= 850 && <View style={{flex:1,width:0,backgroundColor:darkMode?'#153E32':'#155D49',borderRadius:16,padding:viewportHeight<760?18:28,justifyContent:'center'}}>{(mode === 'login' && viewportWidth >= 850) && <View style={{gap:12,paddingVertical:10}}><Text style={{fontSize:Math.min(42,viewportWidth*0.032),fontWeight:'800',color:'#FFFFFF',lineHeight:42}}>A healthier you starts here.</Text><Text style={{fontSize:17,lineHeight:25,color:'#D2EBDD'}}>Build sustainable habits with personalised nutrition and expert support.</Text><Image source={require('./assets/login-customer-art.jpg')} resizeMode="contain" style={{width:"100%",height:Math.max(80,Math.min(180,viewportHeight*0.20)),borderRadius:14,backgroundColor:"#FFFFFF"}} />{['Personalised nutrition plans','Expert wellness guidance','Track your health journey'].map(item=><Text key={item} style={{fontSize:15,color:'#D8F2DF',lineHeight:24}}>✓  {item}</Text>)}</View>}</View>}
-          <View style={[themed('card', styles.card), isMobile && styles.cardMobile, mode === 'login' && {flex:viewportWidth >= 850 ? 1 : undefined,padding:viewportHeight < 760 ? 20 : 32,justifyContent:'center',borderRadius:0,borderWidth:0,shadowOpacity:0,elevation:0,width:viewportWidth>=850?0:'100%'}]}>
-            <View style={styles.formContent}>
+          <View style={{width:'100%', flexDirection:wideAuth ? 'row' : 'column', alignItems:(wideAuth)?'stretch':'center', flexGrow:1, gap:12}}>
+          {wideAuth && <View style={{flex:1,width:0,backgroundColor:darkMode?'#153E32':'#155D49',borderRadius:16,padding:viewportHeight<760?18:28,justifyContent:'center'}}>{(wideAuth) && <View style={{gap:12,paddingVertical:10}}><Text style={{fontSize:Math.min(42,viewportWidth*0.032),fontWeight:'800',color:'#FFFFFF',lineHeight:42}}>{registration?'Start your wellness journey.':'A healthier you starts here.'}</Text><Text style={{fontSize:17,lineHeight:25,color:'#D2EBDD'}}>Build sustainable habits with personalised nutrition and expert support.</Text><Image source={require('./assets/login-customer-wellness.jpg')} resizeMode="cover" style={{width:'100%',height:Math.max(130,Math.min(260,viewportHeight*0.30)),borderRadius:14,backgroundColor:'#D9F5E8'}} />{['Personalised nutrition plans','Expert wellness guidance','Track your health journey'].map(item=><Text key={item} style={{fontSize:15,color:'#D8F2DF',lineHeight:24}}>✓  {item}</Text>)}</View>}</View>}
+          <View style={[themed('card', styles.card), isMobile && styles.cardMobile, {flex:viewportWidth >= 850 ? 1 : undefined,padding:viewportHeight < 760 ? 20 : 32,justifyContent:'center',borderRadius:22,borderWidth:2,borderColor:darkMode?'#58B98B':'#238B61',shadowColor:'#164D36',shadowOpacity:0.09,shadowRadius:12,shadowOffset:{width:0,height:4},elevation:3,width:viewportWidth>=850?0:'100%'}]}>
+            <View style={[styles.formContent, registration && {maxWidth:760}]}>
+            {registered ? <View style={{gap:12}}><Text style={themed('heading',styles.heading)}>Account created successfully</Text><Text style={themed('subtitle',styles.subtitle)}>Follow any email verification instructions, then sign in to your account.</Text><TouchableOpacity style={styles.button} onPress={()=>onNavigate('customer')}><Text style={styles.buttonText}>Continue to sign in</Text></TouchableOpacity></View> : <>
 
-            {/* Login / Register tabs */}
-            <View style={themed('tabs', styles.tabs)}>
-              <TouchableOpacity
-                style={[
-                  themed('tab', styles.tab),
-                  mode === 'login' && themed('selected', styles.selected),
-                ]}
-                accessibilityRole="button"
-                accessibilityState={{ selected: mode === 'login' }}
-                onPress={() => {
-                  setMode('login');
-                  setMessage('');
-                }}
-              >
-                <Text
-                  style={[
-                    themed('tabText', styles.tabText),
-                    mode === 'login' && themed('selectedText', styles.selectedText),
-                  ]}
-                >
-                  Sign in
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  themed('tab', styles.tab),
-                  mode === 'register' && themed('selected', styles.selected),
-                ]}
-                accessibilityRole="button"
-                accessibilityState={{ selected: mode === 'register' }}
-                onPress={() => {
-                  setMode('register');
-                  setMessage('');
-                }}
-              >
-                <Text
-                  style={[
-                    themed('tabText', styles.tabText),
-                    mode === 'register' && themed('selectedText', styles.selectedText),
-                  ]}
-                >
-                  Create account
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {mode === "login" && <Image source={require("./assets/portal-customer-icon.png")} style={{width:52,height:52,marginVertical:8}} resizeMode="contain" />}
-            <Text style={themed('heading', styles.heading)}>
+            {<Image source={require("./assets/portal-customer-icon.png")} style={{width:viewportWidth<600?64:76,height:viewportWidth<600?64:76,alignSelf:"center",marginTop:4,marginBottom:12}} resizeMode="contain" />}
+            <Text style={[themed('heading', styles.heading),{textAlign:'center'}]}>
               {mode === 'login'
                 ? 'Welcome back'
-                : 'Start your wellness journey'}
+                : 'Create your account'}
             </Text>
 
-            <Text style={themed('subtitle', styles.subtitle)}>
+            <Text style={[themed('subtitle', styles.subtitle),{textAlign:'center'}]}>
               {mode === 'login'
                 ? 'Sign in to continue to your nutrition plan.'
                 : 'Create your customer account.'}
             </Text>
 
+            {registration && <Text style={{color:darkMode?'#B9D0C2':'#52695B',fontSize:12}}>All fields are required.</Text>}
             {/* Registration-only fields */}
             {mode === 'register' && (
               <>
+                <View style={{flexDirection:wideAuth?'row':'column',gap:wideAuth?12:0}}><View style={{flex:1,minWidth:0}}>
                 <Text style={themed('label', styles.label)}>
                   Full name
                 </Text>
@@ -444,9 +404,10 @@ function CustomerApp({initialMode='login',initialPrivacy=false,onHome}: {initial
                   value={name}
                   onChangeText={setName}
                   placeholder="Enter your full name" placeholderTextColor={darkMode ? "#A5BBAA" : "#88998D"}
-                  autoCapitalize="words"
+                  autoCapitalize="words" maxLength={100} accessibilityLabel="Full name"
                 />
 
+                </View><View style={{flex:1,minWidth:0}}>
                 <Text style={themed('label', styles.label)}>
                   Mobile number (+91)
                 </Text>
@@ -460,8 +421,9 @@ function CustomerApp({initialMode='login',initialPrivacy=false,onHome}: {initial
                   autoCorrect={false}
                   autoCapitalize="none"
                   placeholder="10-digit mobile number" placeholderTextColor={darkMode ? "#A5BBAA" : "#88998D"}
-                  keyboardType="number-pad"
+                  keyboardType="number-pad" accessibilityLabel="Mobile number"
                 />
+                </View></View>
               </>
             )}
 
@@ -475,7 +437,7 @@ function CustomerApp({initialMode='login',initialPrivacy=false,onHome}: {initial
               value={email}
               onChangeText={setEmail}
               placeholder="name@example.com" placeholderTextColor={darkMode ? "#A5BBAA" : "#88998D"}
-              keyboardType="email-address"
+              keyboardType="email-address" accessibilityLabel="Email address" maxLength={254}
               autoCapitalize="none"
               autoCorrect={false}
             />
@@ -490,7 +452,7 @@ function CustomerApp({initialMode='login',initialPrivacy=false,onHome}: {initial
               value={password}
               onChangeText={setPassword}
               placeholder={mode === 'register' ? "At least 12 characters" : "Enter password"} placeholderTextColor={darkMode ? "#A5BBAA" : "#88998D"}
-              secureTextEntry={!showPassword}
+              secureTextEntry={!showPassword} accessibilityLabel="Password" maxLength={registration?128:undefined} autoCorrect={false}
               autoCapitalize="none"
             />
 
@@ -500,9 +462,9 @@ function CustomerApp({initialMode='login',initialPrivacy=false,onHome}: {initial
                 <TouchableOpacity onPress={() => setShowPassword(v => !v)} accessibilityRole="button">
                   <Text style={themed('privacyLink', styles.privacyLink)}>{showPassword ? 'Hide password' : 'Show password'}</Text>
                 </TouchableOpacity>
-                {passwordRules.map(rule => <Text key={rule.label} style={{ color: rule.ok ? (darkMode ? '#A6E4BC' : '#087F72') : (darkMode ? '#FCA5A5' : '#B91C1C'), fontSize: 13 }}>{rule.ok ? '✓' : '○'} {rule.label}</Text>)}
+                <View style={{flexDirection:"row",flexWrap:"wrap",gap:8}}>{passwordRules.map(rule => <Text key={rule.label} style={{ color: rule.ok ? (darkMode ? '#A6E4BC' : '#087F72') : (darkMode ? '#FCA5A5' : '#B91C1C'), fontSize: 13 }}>{rule.ok ? '✓' : '○'} {rule.label}</Text>)}</View>
                 <Text style={themed('label', styles.label)}>Confirm password</Text>
-                <TextInput style={themed('input', styles.input)} value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry={!showPassword} autoCapitalize="none" autoCorrect={false} placeholder="Re-enter password" placeholderTextColor={darkMode ? '#A5BBAA' : '#88998D'} />
+                <TextInput style={themed('input', styles.input)} accessibilityLabel="Confirm password" maxLength={128} value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry={!showPassword} autoCapitalize="none" autoCorrect={false} placeholder="Re-enter password" placeholderTextColor={darkMode ? '#A5BBAA' : '#88998D'} />
                 {!!confirmPassword && password !== confirmPassword && <Text style={{ color: darkMode ? '#FCA5A5' : '#B91C1C' }}>Passwords do not match.</Text>}
                 <TouchableOpacity accessibilityRole="checkbox" accessibilityState={{ checked: acceptedPrivacy }} onPress={() => setAcceptedPrivacy(v => !v)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8 }}>
                   <Text style={themed('label', styles.label)}>{acceptedPrivacy ? '☑' : '☐'} I accept the Privacy Policy</Text>
@@ -529,7 +491,7 @@ function CustomerApp({initialMode='login',initialPrivacy=false,onHome}: {initial
             {!challenge && !!message && (
               <Text
                 accessibilityRole="alert"
-                style={themed('message', styles.message)}
+                style={[themed('message', styles.message), message.startsWith('Account created successfully.') && {color: darkMode ? '#A6E4BC' : '#166534', backgroundColor: darkMode ? '#203B2D' : '#DCFCE7', borderColor: darkMode ? '#43835B' : '#86EFAC'}]}
               >
                 {message}
               </Text>
@@ -555,11 +517,11 @@ function CustomerApp({initialMode='login',initialPrivacy=false,onHome}: {initial
               )}
             </TouchableOpacity>
 
+            <TouchableOpacity accessibilityRole="button" disabled={busy} onPress={()=>onNavigate(registration?'customer':'register')} style={{paddingVertical:10,alignItems:'center'}}><Text style={{color:darkMode?'#A6E4BC':'#087F72',fontWeight:'700',textAlign:'center'}}>{registration?'Already registered? Sign in':'New to NutriFitora? Create an account'}</Text></TouchableOpacity>
             {/* Privacy Policy */}
             <View style={themed('termsContainer', styles.termsContainer)}>
               <Text style={themed('terms', styles.terms)}>
-                By continuing, you agree to our Terms of
-                Service and
+                Please review our
               </Text>
 
               <TouchableOpacity
@@ -575,6 +537,7 @@ function CustomerApp({initialMode='login',initialPrivacy=false,onHome}: {initial
               </TouchableOpacity>
             </View>
 
+            </>}
             </View>
           </View>
 
@@ -598,7 +561,7 @@ function CustomerApp({initialMode='login',initialPrivacy=false,onHome}: {initial
                 <TextInput style={styles.otpCapture} value={otp} onChangeText={v=>setOtp(v.replace(/[^0-9]/g,'').slice(0,6))} maxLength={6} keyboardType="number-pad" inputMode="numeric" autoComplete="one-time-code" accessibilityLabel="Six digit verification code" editable={!busy} caretHidden autoFocus onSubmitEditing={()=>submitOtp(false)} />
               </View>
               <Text style={[styles.otpDescription,{color:darkMode?'#B9D0C2':'#52695B'}]}>Code expires 5 minutes after sending.</Text>
-              {!!message && <Text accessibilityRole="alert" style={[styles.otpNotice,{color:message==='New code sent.'?(darkMode?'#A6E4BC':'#087F72'):(darkMode?'#FCA5A5':'#B91C1C')}]}>{message}</Text>}
+              {!!message && <Text accessibilityRole="alert" style={[styles.otpNotice,{color:message==='New code sent.'||message==='Verification code sent to your email.'?(darkMode?'#A6E4BC':'#166534'):(darkMode?'#FECACA':'#B91C1C'),backgroundColor:message==='New code sent.'||message==='Verification code sent to your email.'?(darkMode?'#203B2D':'#DCFCE7'):(darkMode?'#451F24':'#FEE2E2'),borderRadius:9,paddingHorizontal:8}]}>{message}</Text>}
               <TouchableOpacity accessibilityRole="button" disabled={busy || otp.length!==6} onPress={()=>submitOtp(false)} style={[styles.otpVerify,(busy || otp.length!==6)&&styles.buttonDisabled]}>{busy?<ActivityIndicator color="#FFFFFF"/>:<Text style={styles.buttonText}>Verify &amp; Login  →</Text>}</TouchableOpacity>
               <Text style={[styles.otpDescription,{color:darkMode?'#B9D0C2':'#52695B'}]}>Didn't receive the code?</Text>
               <TouchableOpacity accessibilityRole="button" disabled={busy || clock<resendAt} onPress={()=>submitOtp(true)} style={{padding:10}}><Text style={{textAlign:'center',fontWeight:'700',color:clock<resendAt||busy?(darkMode?'#9CB3A5':'#66796D'):(darkMode?'#A6E4BC':'#087F72')}}>{clock<resendAt ? `Resend in ${Math.ceil((resendAt-clock)/1000)}s` : 'Resend OTP'}</Text></TouchableOpacity>
@@ -820,8 +783,10 @@ const styles = StyleSheet.create({
   },
 
   message: {
-    color: '#246B4A',
-    backgroundColor: '#EDF7F0',
+    color: '#B91C1C',
+    backgroundColor: '#FEE2E2',
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
     padding: 11,
     borderRadius: 9,
     marginTop: 16,
@@ -892,7 +857,7 @@ const appDarkOverrides: Record<string, object> = {
   selectedText: { color: '#B9F2CB' }, heading: { color: '#F1F7F2' },
   subtitle: { color: '#B5C9BA' }, label: { color: '#DDECE0' },
   input: { backgroundColor: '#22352A', borderColor: '#45604B', color: '#FFFFFF' },
-  forgotText: { color: '#A6E4BC' }, message: { color: '#F4C2A7', backgroundColor: '#283F32' },
+  forgotText: { color: '#A6E4BC' }, message: { color: '#FECACA', backgroundColor: '#451F24', borderColor: '#9F454B' },
   terms: { color: '#B5C9BA' }, privacyLink: { color: '#A6E4BC' },
   footer: { color: '#A0B7A6' },
 };
