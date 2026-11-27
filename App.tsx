@@ -1,3 +1,4 @@
+import {AuthHeader, AuthFooter} from './src/screens/AuthChrome';
 
 import React, { useEffect, useState } from 'react';
 import StaffPortal from './src/portals/StaffPortal';
@@ -39,9 +40,9 @@ function BotanicalAccent({ dark = false, bottom = false }: { dark?: boolean; bot
     </View>
   );
 }
-function BotanicalWaves({ dark = false }: { dark?: boolean }) {
+function BotanicalWaves({ dark = false, compact = false }: { dark?: boolean; compact?: boolean }) {
   return (
-    <View pointerEvents="none" style={{ height: 98, overflow: 'hidden', width: '100%', position: 'relative', marginTop: 18 }}>
+    <View pointerEvents="none" style={{ height: compact ? 28 : 98, overflow: 'hidden', width: '100%', position: 'relative', marginTop: compact ? 0 : 18 }}>
       <View style={{ position: 'absolute', left: -45, right: -45, top: 26, height: 170, borderTopLeftRadius: 170, borderTopRightRadius: 220, backgroundColor: dark ? '#174F47' : '#D9F2D1', transform: [{ rotate: '-6deg' }] }} />
       <View style={{ position: 'absolute', left: -40, right: -45, top: 56, height: 150, borderTopLeftRadius: 190, borderTopRightRadius: 170, backgroundColor: dark ? '#227568' : '#AFE4A0', transform: [{ rotate: '5deg' }] }} />
       <BotanicalAccent dark={dark} bottom />
@@ -68,20 +69,84 @@ type ApiResponse = {
 };
 type Mode = 'login' | 'register';
 
+type PortalRoute = 'home' | 'customer' | 'register' | 'admin' | 'nutritionist' | 'privacy';
+const paths: Record<PortalRoute, string> = { home: '/', customer: '/customer/login', register: '/customer/register', admin: '/admin/login', nutritionist: '/nutritionist/login', privacy: '/privacy-policy' };
+function readRoute(): PortalRoute {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') return 'home';
+  const path = window.location.pathname.replace(/\/+$/, '').toLowerCase();
+  if (path.startsWith('/admin/')) return 'admin';
+  if (path.startsWith('/nutritionist/')) return 'nutritionist';
+  if (path === '/customer/register') return 'register';
+  if (path === '/privacy-policy') return 'privacy';
+  if (path === '/login' || path.startsWith('/customer/')) return 'customer';
+  return 'home';
+}
 export default function App() {
-  // Separate staff URLs; existing customer experience remains at /.
-  const staffRoute = Platform.OS === 'web' && typeof window !== 'undefined'
-    ? window.location.pathname.replace(/\/+$/, '').toLowerCase()
-    : '';
-  if (staffRoute === '/admin/login' || staffRoute === '/admin/dashboard')
-    return <StaffPortal role="admin" />;
-  if (staffRoute === '/nutritionist/login' || staffRoute === '/nutritionist/dashboard')
-    return <StaffPortal role="nutritionist" />;
-  return <CustomerApp />;
+  const [route, setRoute] = useState<PortalRoute>(readRoute);
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+    const sync = () => setRoute(readRoute());
+    window.addEventListener('popstate', sync);
+    return () => window.removeEventListener('popstate', sync);
+  }, []);
+  const navigate = (next: PortalRoute) => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') window.history.pushState({}, '', paths[next]);
+    setRoute(next);
+  };
+  const home = () => navigate('home');
+  if (route === 'admin' || route === 'nutritionist') return <StaffPortal key={route} role={route} onHome={home} />;
+  if (route === 'home') return <WelcomeScreen onNavigate={navigate} />;
+  return <CustomerApp key={route} initialMode={route === 'register' ? 'register' : 'login'} initialPrivacy={route === 'privacy'} onHome={home} />;
 }
 
-function CustomerApp() {
-  const { width: viewportWidth } = useWindowDimensions();
+function WelcomeScreen({onNavigate}: {onNavigate: (route: PortalRoute) => void}) {
+  const {width, height} = useWindowDimensions();
+  const [dark, setDark] = useState(false);
+  const fg = dark ? '#E4F5E9' : '#153F34';
+  const muted = dark ? '#B2D0C1' : '#526F62';
+  const surface = dark ? '#203C32' : '#FFFFFF';
+  const wide = width >= 760;
+  const compact = height < 780 || !wide;
+  const pad = compact ? 12 : 24;
+  const gap = compact ? 8 : 16;
+  const portals = [
+    {route:'customer' as const, title:'Customer', image:require('./assets/portal-customer-icon.png'), color:'#087F72', desc:'Your personalised nutrition and wellness journey.', button:'Customer Login'},
+    {route:'nutritionist' as const, title:'Nutritionist', image:require('./assets/portal-nutritionist-icon.png'), color:'#286AA5', desc:'Manage clients, diet plans and consultations.', button:'Nutritionist Login'},
+    {route:'admin' as const, title:'Administrator', image:require('./assets/portal-admin-icon.png'), color:'#7652A0', desc:'Manage customers, teams and wellness programs.', button:'Admin Login'},
+  ];
+  return <SafeAreaView style={{flex:1,backgroundColor:dark?'#102820':'#EAF5EF'}}>
+    <StatusBar style={dark?'light':'dark'} />
+    <ScrollView style={{flex:1}} showsVerticalScrollIndicator={false} contentContainerStyle={{flexGrow:1,padding:pad}}>
+      <View style={{width:'100%',alignSelf:'center',flex:1,gap}}>
+        <AuthHeader dark={dark} onToggle={()=>setDark(v=>!v)} />
+        <View style={{flex:1,justifyContent:'center',gap}}>
+          <View style={{backgroundColor:'#145C46',borderRadius:18,paddingHorizontal:wide?28:16,paddingVertical:compact?12:24,overflow:'hidden',gap:4}}>
+            <BotanicalAccent dark bottom/>
+            <Text style={{color:'#C2E6D3',fontSize:11,fontWeight:'700',letterSpacing:1}}>NOURISH • TRANSFORM • THRIVE</Text>
+            <Text accessibilityRole="header" style={{color:'#FFFFFF',fontSize:wide?(compact?30:40):24,fontWeight:'800'}}>Welcome to NutriFitora</Text>
+            <Text style={{color:'#E0F5ED',fontSize:compact?13:16}}>Your journey towards a healthier, happier life begins here.</Text>
+          </View>
+          <Text accessibilityRole="header" style={{color:fg,fontSize:compact?19:24,fontWeight:'800',textAlign:'center'}}>Choose your portal</Text>
+          <View style={{flexDirection:wide?'row':'column',gap}}>
+            {portals.map(p=><View key={p.route} style={{flex:wide?1:undefined,minWidth:0,backgroundColor:surface,borderRadius:16,padding:compact?10:20,gap:compact?8:12,borderWidth:1,borderColor:dark?'#456657':'#C8DED0',flexDirection:wide?'column':'row',alignItems:wide?'stretch':'center'}}>
+              <Image source={p.image} accessible={false} resizeMode="contain" style={{width:compact?40:56,height:compact?40:56,alignSelf:'center'}} />
+              <View style={{flex:wide?undefined:1,flexGrow:1,gap:4,minWidth:0}}>
+                <Text style={{color:fg,fontSize:compact?16:21,fontWeight:'800',textAlign:wide?'center':'left'}}>{p.title}</Text>
+                {(wide || height>=740) && <Text style={{color:muted,fontSize:compact?12:14,lineHeight:compact?17:21,textAlign:wide?'center':'left'}}>{p.desc}</Text>}
+              </View>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel={p.button} onPress={()=>onNavigate(p.route)} style={{backgroundColor:p.color,borderRadius:10,minHeight:44,paddingHorizontal:12,paddingVertical:8,justifyContent:'center'}}><Text style={{color:'#FFFFFF',fontWeight:'700',fontSize:compact?13:15,textAlign:'center'}}>{wide?p.button:'Login'} →</Text></TouchableOpacity>
+            </View>)}
+          </View>
+          <TouchableOpacity accessibilityRole="button" onPress={()=>onNavigate('register')} style={{alignSelf:'center',minHeight:44,justifyContent:'center',paddingHorizontal:12,borderWidth:1,borderColor:'#16866B',borderRadius:10}}><Text style={{color:fg,fontSize:13,fontWeight:'700',textAlign:'center'}}>New here? Create your free customer account</Text></TouchableOpacity>
+        </View>
+        <AuthFooter dark={dark} onPrivacy={()=>onNavigate('privacy')} />
+      </View>
+    </ScrollView>
+  </SafeAreaView>;
+}
+
+function CustomerApp({initialMode='login',initialPrivacy=false,onHome}: {initialMode?: Mode; initialPrivacy?: boolean; onHome:()=>void}) {
+  const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
   const compactToggle = viewportWidth < 600;
   const isMobile = viewportWidth < 600;
   useEffect(() => {
@@ -92,8 +157,8 @@ function CustomerApp() {
 
   const [darkMode, setDarkMode] = useState(false);
   const toggleTheme = () => setDarkMode(current => !current);
-  const themed = (key: string, style: any) => darkMode ? [style, appDarkOverrides[key]] : style;
-  const [mode, setMode] = useState<Mode>('login');
+  const themed = (key: string, style: any) => [style, darkMode && appDarkOverrides[key], mode === 'login' && !loggedIn && loginFit[key]];
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [loggedIn, setLoggedIn] = useState(false);
   const [showPrograms, setShowPrograms] = useState(false);
   const [activeTab, setActiveTab] = useState<NutriTab>('home');
@@ -121,7 +186,7 @@ function CustomerApp() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [showPrivacyPolicy, setShowPrivacyPolicy] =
-    useState(false);
+    useState(initialPrivacy);
 
   function notify(text: string) {
     setMessage(text);
@@ -284,7 +349,7 @@ function CustomerApp() {
     return (
       <SafeAreaView style={themed('safe', styles.safe)}>
         <StatusBar style={darkMode ? 'light' : 'dark'} />
-        <PrivacyPolicyScreen darkMode={darkMode} onToggleTheme={toggleTheme} onBack={() => setShowPrivacyPolicy(false)} />
+        <PrivacyPolicyScreen darkMode={darkMode} onToggleTheme={toggleTheme} onBack={() => initialPrivacy ? onHome() : setShowPrivacyPolicy(false)} />
       </SafeAreaView>
     );
   }
@@ -296,45 +361,15 @@ function CustomerApp() {
 
       <ScrollView
         style={themed('scroll', styles.scroll)}
-        contentContainerStyle={[themed('page', styles.page), isMobile && styles.pageMobile]}
+        contentContainerStyle={[themed('page', styles.page), isMobile && styles.pageMobile, mode === 'login' && {padding: viewportWidth < 600 ? 10 : 20, paddingTop: 10, paddingBottom: 10}]}
         keyboardShouldPersistTaps="always"
       >
-        <View style={themed('shell', styles.shell)}>
-          <BotanicalAccent dark={darkMode} />
+        <View style={[themed('shell', styles.shell), {maxWidth:mode==='login'?'100%':780, flexGrow:1, justifyContent:'space-between',gap:10}]}>
+          <AuthHeader dark={darkMode} onToggle={toggleTheme} onHome={onHome} />
 
-          {/* Matching assessment header: logo left, theme toggle right */}
-          <View style={[styles.authHeaderPanel, isMobile && styles.authHeaderPanelMobile, darkMode && styles.authHeaderPanelDark]}>
-          <View style={themed('loginHeader', styles.loginHeader)}>
-            <View>
-              <Image
-                source={darkMode ? require('./assets/NutriFitora_logo_white.png') : require('./assets/NutriFitora_logo.png')}
-                style={styles.brandLogo}
-                resizeMode="contain"
-                accessibilityLabel="Nutri Fitora logo"
-              />
-            </View>
-            <TouchableOpacity
-              onPress={toggleTheme}
-              accessibilityRole="switch"
-              accessibilityState={{ checked: darkMode }}
-              accessibilityLabel={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-              style={[styles.loginThemeButton, compactToggle && styles.loginThemeButtonCompact, darkMode ? styles.loginThemeButtonDark : styles.loginThemeButtonLight]}
-            >
-              <View style={[styles.loginThemeThumb, compactToggle && styles.loginThemeThumbCompact, darkMode ? styles.loginThemeThumbDark : styles.loginThemeThumbLight]}>
-                <Text style={[styles.loginThemeIcon, compactToggle && styles.loginThemeIconCompact, darkMode && styles.loginThemeIconDark]}>{darkMode ? '☾' : '☀'}</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.taglineRow}>
-            <Text style={themed('tagline', styles.tagline)}>
-              <Text style={themed('taglineAccent', styles.taglineAccent)}>Small steps.</Text>
-              {'\n'}Healthier you.
-            </Text>
-          </View>
-          </View>
-
-          <View style={[themed('card', styles.card), isMobile && styles.cardMobile]}>
+          <View style={{width:'100%', flexDirection:mode === 'login' && viewportWidth >= 850 ? 'row' : 'column', alignItems:(mode === 'login' && viewportWidth >= 850)?'stretch':'center', flexGrow:mode === 'login'?1:0, gap:12}}>
+          {mode === 'login' && viewportWidth >= 850 && <View style={{flex:1,width:0,backgroundColor:darkMode?'#153E32':'#155D49',borderRadius:16,padding:viewportHeight<760?18:28,justifyContent:'center'}}>{(mode === 'login' && viewportWidth >= 850) && <View style={{gap:12,paddingVertical:10}}><Text style={{fontSize:Math.min(42,viewportWidth*0.032),fontWeight:'800',color:'#FFFFFF',lineHeight:42}}>A healthier you starts here.</Text><Text style={{fontSize:17,lineHeight:25,color:'#D2EBDD'}}>Build sustainable habits with personalised nutrition and expert support.</Text><Image source={require('./assets/login-customer-art.jpg')} resizeMode="contain" style={{width:"100%",height:Math.max(80,Math.min(180,viewportHeight*0.20)),borderRadius:14,backgroundColor:"#FFFFFF"}} />{['Personalised nutrition plans','Expert wellness guidance','Track your health journey'].map(item=><Text key={item} style={{fontSize:15,color:'#D8F2DF',lineHeight:24}}>✓  {item}</Text>)}</View>}</View>}
+          <View style={[themed('card', styles.card), isMobile && styles.cardMobile, mode === 'login' && {flex:viewportWidth >= 850 ? 1 : undefined,padding:viewportHeight < 760 ? 20 : 32,justifyContent:'center',borderRadius:0,borderWidth:0,shadowOpacity:0,elevation:0,width:viewportWidth>=850?0:'100%'}]}>
             <View style={styles.formContent}>
 
             {/* Login / Register tabs */}
@@ -384,7 +419,7 @@ function CustomerApp() {
               </TouchableOpacity>
             </View>
 
-            <Text style={themed('eyebrow', styles.eyebrow)}>NUTRIFITORA CUSTOMER PORTAL</Text>
+            {mode === "login" && <Image source={require("./assets/portal-customer-icon.png")} style={{width:52,height:52,marginVertical:8}} resizeMode="contain" />}
             <Text style={themed('heading', styles.heading)}>
               {mode === 'login'
                 ? 'Welcome back'
@@ -459,6 +494,7 @@ function CustomerApp() {
               autoCapitalize="none"
             />
 
+            {mode === 'login' && <TouchableOpacity onPress={()=>setShowPassword(v=>!v)} accessibilityRole="button"><Text style={{color:darkMode?'#A8EA8D':'#087F72',textAlign:'right',paddingVertical:5}}>{showPassword?'Hide password':'Show password'}</Text></TouchableOpacity>}
             {mode === 'register' && (
               <View style={{ gap: 6, marginTop: 8 }}>
                 <TouchableOpacity onPress={() => setShowPassword(v => !v)} accessibilityRole="button">
@@ -542,10 +578,8 @@ function CustomerApp() {
             </View>
           </View>
 
-          <BotanicalWaves dark={darkMode} />
-          <Text style={themed('footer', styles.footer)}>
-            Your wellness, one choice at a time.
-          </Text>
+          </View>
+          <AuthFooter dark={darkMode} onPrivacy={openPrivacyPolicy} />
 
         </View>
       </ScrollView>
@@ -580,7 +614,7 @@ function CustomerApp() {
 
 const styles = StyleSheet.create({
   otpOverlay: {flex:1,backgroundColor:'rgba(8,25,19,0.68)'},
-  otpCenter: {flexGrow:1,justifyContent:'center',alignItems:'center',padding:16},
+  otpCenter: {flexGrow:1,justifyContent:'space-between',alignItems:'center',padding:16},
   otpCard: {width:'100%',maxWidth:420,backgroundColor:'#FFFFFF',borderRadius:28,padding:24,alignItems:'center',gap:8,shadowColor:'#000',shadowOpacity:0.22,shadowRadius:24,shadowOffset:{width:0,height:12},elevation:12},
   otpCardDark: {backgroundColor:'#20372D'},
   otpClose: {position:'absolute',top:12,right:12,width:40,height:40,borderRadius:20,alignItems:'center',justifyContent:'center'},
@@ -601,7 +635,7 @@ const styles = StyleSheet.create({
   authHeaderPanelMobile: { paddingHorizontal: 14, paddingTop: 8, paddingBottom: 10, borderRadius: 19, marginBottom: 14 },
   pageMobile: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 32 },
   cardMobile: { padding: 20, borderRadius: 19 },
-  formContent: { width: '100%', maxWidth: 560, alignSelf: 'center' },
+  formContent: { width: '100%', maxWidth: 480, alignSelf: 'center' },
   eyebrow: { color: '#246B4A', fontSize: 11, fontWeight: '800', letterSpacing: 1.2, marginBottom: 7 },
   authHeaderPanelDark: { borderColor: '#45604B' },
   secondaryPageLogo: {
@@ -862,3 +896,5 @@ const appDarkOverrides: Record<string, object> = {
   terms: { color: '#B5C9BA' }, privacyLink: { color: '#A6E4BC' },
   footer: { color: '#A0B7A6' },
 };
+
+const loginFit: Record<string, object> = { page:{paddingTop:10,paddingBottom:10}, tagline:{fontSize:22,lineHeight:26}, loginHeader:{marginBottom:2}, tabs:{marginBottom:8}, tab:{paddingVertical:8}, subtitle:{marginTop:3,marginBottom:5}, label:{marginTop:9,marginBottom:5,fontSize:14}, input:{height:46,fontSize:16}, forgot:{marginTop:7}, button:{height:46,marginTop:10}, termsContainer:{marginTop:7}, privacyButton:{minHeight:32,paddingVertical:5}, footer:{marginTop:4}, message:{marginTop:7,padding:7} };
