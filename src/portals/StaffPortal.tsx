@@ -1,3 +1,4 @@
+import PasswordField from '../screens/PasswordField';
 import {AuthHeader, AuthFooter} from '../screens/AuthChrome';
 import NutriPageHeader from '../screens/NutriPageHeader';
 import NutriPageFooter from '../screens/NutriPageFooter';
@@ -44,7 +45,6 @@ export default function StaffPortal({ role, onHome, onSession, onSignOut }: { ro
   const [darkMode, setDarkMode] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword,setShowPassword]=useState(false);
   const [token, setToken] = useState('');
   const [fullName, setFullName] = useState('');
   const [stats, setStats] = useState<Dashboard | null>(null);
@@ -137,7 +137,7 @@ export default function StaffPortal({ role, onHome, onSession, onSignOut }: { ro
                   <Text style={themed('label', styles.label)}>Email address</Text>
                   <TextInput style={themed('input', styles.input)} value={email} onChangeText={setEmail} placeholder="name@example.com" placeholderTextColor={darkMode ? '#A5BBAA' : '#88998D'} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} autoComplete="email" />
                   <Text style={themed('label', styles.label)}>Password</Text>
-                  <TextInput style={themed('input', styles.input)} value={password} onChangeText={setPassword} placeholder="At least 8 characters" placeholderTextColor={darkMode ? '#A5BBAA' : '#88998D'} secureTextEntry={!showPassword} autoCapitalize="none" autoComplete="current-password" onSubmitEditing={signIn} /><TouchableOpacity onPress={()=>setShowPassword(v=>!v)} accessibilityRole="button"><Text style={{color:darkMode?"#A8EA8D":"#087F72",textAlign:"right",paddingVertical:5}}>{showPassword?"Hide password":"Show password"}</Text></TouchableOpacity>
+                  <PasswordField dark={darkMode} fieldStyle={themed('input', styles.input)} value={password} onChangeText={setPassword} placeholder="Enter password" placeholderTextColor={darkMode ? '#A5BBAA' : '#88998D'}  autoCapitalize="none" autoComplete="current-password" onSubmitEditing={signIn} />
                   <TouchableOpacity style={themed('forgot', styles.forgot)} onPress={() => setMessage('Password reset will be added in the next step.')}>
                     <Text style={themed('forgotText', styles.forgotText)}>Forgot password?</Text>
                   </TouchableOpacity>

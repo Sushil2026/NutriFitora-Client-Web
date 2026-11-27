@@ -1,3 +1,4 @@
+import PasswordField from './src/screens/PasswordField';
 import {AuthHeader, AuthFooter} from './src/screens/AuthChrome';
 
 import React, { useEffect, useState, useRef } from 'react';
@@ -215,7 +216,6 @@ function CustomerApp({initialMode='login',initialPrivacy=false,onHome,onNavigate
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const passwordRules = [
     { label: '12–128 characters', ok: password.length >= 12 && password.length <= 128 },
     { label: 'Uppercase letter', ok: /[A-Z]/.test(password) },
@@ -320,7 +320,6 @@ function CustomerApp({initialMode='login',initialPrivacy=false,onHome,onNavigate
         setPassword('');
         setConfirmPassword('');
         setAcceptedPrivacy(false);
-        setShowPassword(false);
         setRegistered(true);
       } else {
         if (!data.otpRequired || !data.challengeId) throw new Error('Email verification is unavailable. Please contact support.');
@@ -490,24 +489,22 @@ function CustomerApp({initialMode='login',initialPrivacy=false,onHome,onNavigate
               Password
             </Text>
 
-            <TextInput
-              style={themed('input', styles.input)}
+            <PasswordField key={mode} dark={darkMode}
+              fieldStyle={themed('input', styles.input)}
               value={password}
               onChangeText={setPassword}
               placeholder={mode === 'register' ? "At least 12 characters" : "Enter password"} placeholderTextColor={darkMode ? "#A5BBAA" : "#88998D"}
-              secureTextEntry={!showPassword} accessibilityLabel="Password" maxLength={registration?128:undefined} autoCorrect={false}
+               accessibilityLabel="Password" maxLength={registration?128:undefined} autoCorrect={false}
               autoCapitalize="none"
             />
 
-            {mode === 'login' && <TouchableOpacity onPress={()=>setShowPassword(v=>!v)} accessibilityRole="button"><Text style={{color:darkMode?'#A8EA8D':'#087F72',textAlign:'right',paddingVertical:5}}>{showPassword?'Hide password':'Show password'}</Text></TouchableOpacity>}
+            
             {mode === 'register' && (
               <View style={{ gap: 6, marginTop: 8 }}>
-                <TouchableOpacity onPress={() => setShowPassword(v => !v)} accessibilityRole="button">
-                  <Text style={themed('privacyLink', styles.privacyLink)}>{showPassword ? 'Hide password' : 'Show password'}</Text>
-                </TouchableOpacity>
+                
                 <View style={{flexDirection:"row",flexWrap:"wrap",gap:8}}>{passwordRules.map(rule => <Text key={rule.label} style={{ color: rule.ok ? (darkMode ? '#A6E4BC' : '#087F72') : (darkMode ? '#FCA5A5' : '#B91C1C'), fontSize: 13 }}>{rule.ok ? '✓' : '○'} {rule.label}</Text>)}</View>
                 <Text style={themed('label', styles.label)}>Confirm password</Text>
-                <TextInput style={themed('input', styles.input)} accessibilityLabel="Confirm password" maxLength={128} value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry={!showPassword} autoCapitalize="none" autoCorrect={false} placeholder="Re-enter password" placeholderTextColor={darkMode ? '#A5BBAA' : '#88998D'} />
+                <PasswordField dark={darkMode} fieldStyle={themed('input', styles.input)} accessibilityLabel="Confirm password" maxLength={128} value={confirmPassword} onChangeText={setConfirmPassword}  autoCapitalize="none" autoCorrect={false} placeholder="Re-enter password" placeholderTextColor={darkMode ? '#A5BBAA' : '#88998D'} />
                 {!!confirmPassword && password !== confirmPassword && <Text style={{ color: darkMode ? '#FCA5A5' : '#B91C1C' }}>Passwords do not match.</Text>}
                 <TouchableOpacity accessibilityRole="checkbox" accessibilityState={{ checked: acceptedPrivacy }} onPress={() => setAcceptedPrivacy(v => !v)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8 }}>
                   <Text style={themed('label', styles.label)}>{acceptedPrivacy ? '☑' : '☐'} I accept the Privacy Policy</Text>
