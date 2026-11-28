@@ -1,8 +1,22 @@
+# Dependencies
 node_modules/
-.expo/
+
+# Generated files
 dist/
-web-build/
+.expo/
+*.tsbuildinfo
+
+# Environment secrets
 .env
 .env.*
 !.env.example
-!.env.Example
+
+# Backup files
+*.bak
+*.backup.json
+
+# Security audit reports
+npm-audit-report.json
+npm-production-audit.json
+npm-audit-production.json
+dependency-tree.jsonss
