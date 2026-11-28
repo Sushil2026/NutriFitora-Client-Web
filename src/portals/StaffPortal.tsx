@@ -52,7 +52,7 @@ export default function StaffPortal({ role, onHome, onSession, onSignOut }: { ro
   const [busy, setBusy] = useState(false);
   const themed = (key: string, style: any) => [darkMode ? [style, appDarkOverrides[key]] : style, !token && loginFit[key]];
   const toggleTheme = () => setDarkMode(current => !current);
-  const logout = () => { setToken(''); setStats(null); setFullName(''); setEmail(''); setPassword(''); setShowPassword(false); setMessage(''); };
+  const logout = () => { setToken(''); setStats(null); setFullName(''); setEmail(''); setPassword(''); setMessage(''); };
   const goCustomer = () => { if (onHome) { onHome(); return; } if (Platform.OS === 'web' && typeof window !== 'undefined') window.location.assign('/'); };
 
   async function signIn() {

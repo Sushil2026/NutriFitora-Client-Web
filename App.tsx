@@ -136,7 +136,8 @@ export default function App() {
     setGeneration(v => v + 1);
     setRoute(next);
   };
-  const home = () => navigate('home');
+  // Explicit Home navigation clears any stale session and remounts the portal.
+  const home = () => endSession('home');
   const logout = () => endSession();
   if (route === 'admin' || route === 'nutritionist') return <StaffPortal key={`${route}-${generation}`} role={route} onHome={home} onSession={token => beginSession(route, token)} onSignOut={logout} />;
   if (route === 'home') return <WelcomeScreen onNavigate={navigate} />;
