@@ -5,7 +5,8 @@ import NutriPageFooter from '../screens/NutriPageFooter';
 import AdminLayout from '../admin/AdminLayout';
 import ClientAssignmentsScreen from '../admin/ClientAssignmentsScreen';
 import React, { useState } from 'react';
-import { ActivityIndicator, Image, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions, Platform } from 'react-native';
+import {StyleSheet,useWindowDimensions,Platform} from 'react-native';
+import {ActivityIndicator,Image,SafeAreaView,ScrollView,Text,TextInput,TouchableOpacity,View} from '../theme/GlobalTheme';
 import DashboardScreen from '../nutritionist/DashboardScreen';
 import { StatusBar } from 'expo-status-bar';
 
@@ -103,7 +104,7 @@ export default function StaffPortal({ role, onHome, onSession, onSignOut }: { ro
   const sharedHeader = <NutriPageHeader darkMode={darkMode} customerName={fullName} onToggleTheme={toggleTheme} onLogout={signOut}/>;
   const sharedFooter = <NutriPageFooter darkMode={darkMode}/>;
   if (admin && token) return <AdminLayout token={token} apiUrl={API_URL} dark={darkMode} name={fullName}
-    header={<><StatusBar style={darkMode ? 'light' : 'dark'} /><NutriPageHeader darkMode={darkMode} customerName={fullName} onToggleTheme={toggleTheme} onLogout={signOut} /></>}
+    header={(bell)=><><StatusBar style={darkMode ? 'light' : 'dark'} /><NutriPageHeader darkMode={darkMode} customerName={fullName} onToggleTheme={toggleTheme} onLogout={signOut} headerAction={bell} /></>}
     footer={<NutriPageFooter darkMode={darkMode} />}
   />;
   return (
